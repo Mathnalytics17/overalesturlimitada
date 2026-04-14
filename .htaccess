@@ -1,22 +1,5 @@
-Options -Indexes
-ServerSignature Off
+RewriteEngine On
 
-<IfModule mod_authz_core.c>
-    RedirectMatch 403 ^/(core|controllers|models|services|shared|routes|runtime|migrations|vendor)/
-</IfModule>
-
-<FilesMatch "^(\.env|composer\.(json|lock)|phpunit\.xml|README|SECURITY_AUDIT)">
-    Require all denied
-</FilesMatch>
-
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-
-    RewriteRule ^styles/(.*)$ public/styles/$1 [L]
-    RewriteRule ^img/(.*)$ public/img/$1 [L]
-
-    RewriteCond %{REQUEST_URI} !^/public/
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ public/index.php [QSA,L]
-</IfModule>
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L,QSA]
