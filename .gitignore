@@ -1,6 +1,5 @@
-vendor
+
 .idea
 .env
 runtime/logs/*.log
 runtime/cache/*
-/public/img/packageTourist/
