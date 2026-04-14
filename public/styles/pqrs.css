@@ -1,0 +1,164 @@
+/* /styles/pqrs.css */
+
+/* base */
+.pqrs{
+  padding: 48px 16px;
+  background: #ffffff;
+  min-height: calc(100vh - 80px); /* por si tienes header */
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: #111;
+}
+
+.container-pqrs{
+  max-width: 820px;
+  margin: 0 auto;
+  background: transparent;
+  border-radius: 16px;
+  padding: 28px 24px;
+
+}
+
+/* titulo y texto */
+.container-pqrs h1{
+  margin: 0 0 10px;
+  font-size: 44px;
+  letter-spacing: -0.5px;
+}
+
+.container-pqrs p{
+  margin: 0 0 22px;
+  color: #444;
+  line-height: 1.5;
+  font-size: 16px;
+}
+
+/* form layout */
+.container-pqrs form{
+  display: grid;
+  gap: 14px;
+}
+
+/* cada bloque */
+.container-pqrs form > div{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* labels */
+.container-pqrs label{
+  font-weight: 600;
+  font-size: 14px;
+  color: #222;
+}
+
+/* inputs */
+.container-pqrs input[type="text"],
+.container-pqrs input[type="email"],
+.container-pqrs select,
+.container-pqrs textarea{
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #d7d7de;
+  outline: none;
+  font-size: 15px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+  background: #fff;
+}
+
+/* textarea */
+.container-pqrs textarea{
+  resize: vertical;
+  min-height: 140px;
+}
+
+/* focus */
+.container-pqrs input[type="text"]:focus,
+.container-pqrs input[type="email"]:focus,
+.container-pqrs select:focus,
+.container-pqrs textarea:focus{
+  border-color: rgba(220, 20, 60, .75); /* crimson */
+  box-shadow: 0 0 0 4px rgba(220, 20, 60, .12);
+}
+
+/* file input */
+.container-pqrs input[type="file"]{
+  width: 100%;
+  padding: 10px;
+  border: 1px dashed #cfcfe0;
+  border-radius: 12px;
+  background: #fafafb;
+}
+
+/* helper text */
+.container-pqrs small{
+  color: #666;
+  line-height: 1.4;
+}
+
+/* ultima fila: checkbox + botón */
+.container-pqrs form > div:last-child{
+  margin-top: 6px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* checkbox label (para que se vea limpio) */
+.container-pqrs form > div:last-child > label{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.container-pqrs input[type="checkbox"]{
+  width: 18px;
+  height: 18px;
+  accent-color: crimson;
+}
+
+/* botón */
+.container-pqrs button{
+  background: crimson;
+  color: #fff;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .12s ease, filter .12s ease;
+}
+
+.container-pqrs button:hover{
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+}
+
+.container-pqrs button:active{
+  transform: translateY(0);
+}
+
+/* responsive */
+@media (max-width: 520px){
+  .container-pqrs{
+    padding: 22px 16px;
+  }
+
+  .container-pqrs h1{
+    font-size: 36px;
+  }
+
+  .container-pqrs form > div:last-child{
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .container-pqrs button{
+    width: 100%;
+  }
+}

@@ -1,0 +1,19 @@
+{
+    "name": "usuario/alestur-website",
+    "autoload": {
+        "psr-4": {
+            "app\\": "./"
+        }
+    },
+    "authors": [
+        {
+            "name": "Luis Molina",
+            "email": "luisjose0317@gmail.com"
+        }
+    ],
+
+    
+    "require": {
+        "phpmailer/phpmailer": "^7.0"
+    }
+}

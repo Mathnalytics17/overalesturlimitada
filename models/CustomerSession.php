@@ -1,0 +1,87 @@
+<?php
+
+namespace app\Models;
+
+use app\Core\Model;
+
+class CustomerSession extends Model
+{
+    protected string $table = 'customer_sessions';
+    protected bool $timestamps = false;
+
+    protected array $fillable = [
+        'customer_account_id',
+        'session_token_hash',
+        'ip_address',
+        'user_agent',
+        'last_activity_at',
+        'expires_at',
+        'created_at',
+        'revoked_at',
+    ];
+
+    protected array $hidden = [
+        'session_token_hash',
+    ];
+
+    protected array $casts = [
+        'id' => 'int',
+        'customer_account_id' => 'int',
+    ];
+
+    public static function createSession(
+        int $customerAccountId,
+        string $plainToken,
+        ?string $ipAddress,
+        ?string $userAgent,
+        int $ttlHours = 24
+    ): ?static {
+        return static::create([
+            'customer_account_id' => $customerAccountId,
+            'session_token_hash' => hash('sha256', $plainToken),
+            'ip_address' => $ipAddress,
+            'user_agent' => $userAgent,
+            'last_activity_at' => date('Y-m-d H:i:s'),
+            'expires_at' => date('Y-m-d H:i:s', strtotime("+{$ttlHours} hours")),
+            'created_at' => date('Y-m-d H:i:s'),
+            'revoked_at' => null,
+        ]);
+    }
+
+    public static function findValidSession(string $plainToken): ?static
+    {
+        $tokenHash = hash('sha256', $plainToken);
+
+        $row = static::query()
+            ->where('session_token_hash', '=', $tokenHash)
+            ->whereNull('revoked_at')
+            ->where('expires_at', '>', date('Y-m-d H:i:s'))
+            ->first();
+
+        return $row ? new static($row) : null;
+    }
+
+    public function touchActivity(): bool
+    {
+        return $this->update([
+            'last_activity_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public function revoke(): bool
+    {
+        return $this->update([
+            'revoked_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public static function revokeAllByAccount(int $customerAccountId): bool
+    {
+        return static::rawQuery()
+            ->where('customer_account_id', '=', $customerAccountId)
+            ->whereNull('revoked_at')
+            ->update([
+                'revoked_at' => date('Y-m-d H:i:s'),
+            ]);
+    }
+}
