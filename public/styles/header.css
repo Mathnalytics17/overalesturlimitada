@@ -1,0 +1,94 @@
+.topbar{
+  background-color: crimson;
+}
+
+/* el nav */
+.navbar{
+  background: crimson;
+}
+
+.navbar-container{
+  width: 100%;
+  padding: 16px 32px;   /* <- más alto y un poco más “ancho” lateral */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* lista horizontal sin bullets */
+.navbar-container ul{
+  list-style: none;            /* quita puntos */
+  margin: 0;
+  padding: 0;
+  display: flex;               /* pone los li en fila */
+  gap: 24px;
+  align-items: center;
+}
+
+/* bloque derecho (globo + bandera) en fila */
+.navbar-container > div:last-child{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* icono */
+.navbar-container i{
+  color: #fff;
+  font-size: 18px;
+}
+
+/* bandera */
+.image-colombia{
+  height: 20px;
+  width: 28px;                 /* bandera se ve mejor rectangular */
+  display: block;
+}
+
+/* ===== DROPDOWN ESTABLE (hover + click) ===== */
+.dropdown{
+  position: relative;
+}
+
+/* botón */
+.dropbtn{
+  background: transparent;
+  border: 0;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  padding: 8px 0;
+}
+
+/* menú oculto */
+.dropdown > .dropdown-menu{
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 100%;          /* pegado al botón */
+  margin-top: 0;      /* SIN separación que cree hueco */
+  min-width: 180px;
+
+  list-style: none;
+  padding: 8px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.2);
+  z-index: 999;
+}
+
+/* show: hover o click */
+.dropdown:hover > .dropdown-menu,
+
+
+/* links */
+.dropdown-menu a{
+  display: block;
+  padding: 10px 12px;
+  text-decoration: none;
+  color: #111;
+  border-radius: 8px;
+}
+.dropdown-menu a:hover{
+  background: #f2f2f2;
+}
