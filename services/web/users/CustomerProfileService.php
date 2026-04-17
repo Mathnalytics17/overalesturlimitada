@@ -75,14 +75,15 @@ class CustomerProfileService
             ];
         }
 
-        // Opcional: cerrar otras sesiones
-        // CustomerAuth::logoutAllDevices((int) $account->id);
+        CustomerAuth::logoutAllDevices((int) $account->id);
 
         return [
             'success' => true,
             'message' => 'Contraseña actualizada correctamente.',
             'errors' => [],
-            'data' => [],
+            'data' => [
+                'force_relogin' => true,
+            ],
         ];
     }
     

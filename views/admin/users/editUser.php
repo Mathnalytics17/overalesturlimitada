@@ -25,7 +25,7 @@ $hasErrors = !empty($errors);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Editar administrador</title>
-  <link rel="stylesheet" href="/public/styles/admin.css">
+  <link rel="stylesheet" href="/styles/admin.css">
 </head>
 <body>
   <div class="app">

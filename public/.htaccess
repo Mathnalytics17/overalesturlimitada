@@ -1,0 +1,9 @@
+Options -Indexes
+RewriteEngine On
+
+# Block direct access to hidden files inside the public directory.
+RewriteRule "(^|/)\." - [F,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L,QSA]

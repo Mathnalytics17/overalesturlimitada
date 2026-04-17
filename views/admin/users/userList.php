@@ -2,7 +2,7 @@
 use app\Core\Flash;
 
 $page_title = "Usuarios";
-$page_subtitle = "Administración y roles";
+$page_subtitle = "Administracion y roles";
 $active = "users";
 
 $users = $users ?? [];
@@ -22,7 +22,6 @@ if (!empty($flashToasts)) {
 
 $old = Flash::get('old', []);
 $errors = Flash::get('errors', []);
-$createdUserInfo = Flash::get('createdUserInfo', null);
 
 $isEditing = $editingUser !== null;
 $canCreateUsers = $currentAdmin && method_exists($currentAdmin, 'isSuperAdmin') && $currentAdmin->isSuperAdmin();
@@ -37,27 +36,6 @@ function field_error(array $errors, string $field): string
 <?php if ($message !== ''): ?>
   <div class="card" style="margin-bottom:16px;padding:14px;background:<?= $messageType === 'error' ? '#fee2e2' : '#dcfce7' ?>;">
     <div><?= e($message) ?></div>
-
-    <?php if ($messageType !== 'error' && !empty($createdUserInfo)): ?>
-      <div style="margin-top:10px;font-size:14px;">
-        <?php if (!empty($createdUserInfo['email'])): ?>
-          <div><strong>Correo:</strong> <?= e((string) $createdUserInfo['email']) ?></div>
-        <?php endif; ?>
-
-        <?php if (!empty($createdUserInfo['generated_password'])): ?>
-          <div><strong>Contraseña temporal:</strong> <?= e((string) $createdUserInfo['generated_password']) ?></div>
-        <?php endif; ?>
-
-        <?php if (!empty($createdUserInfo['verification_url'])): ?>
-          <div style="margin-top:6px;">
-            <strong>Enlace de verificación:</strong>
-            <a href="<?= e((string) $createdUserInfo['verification_url']) ?>" target="_blank" rel="noopener">
-              abrir enlace
-            </a>
-          </div>
-        <?php endif; ?>
-      </div>
-    <?php endif; ?>
   </div>
 <?php endif; ?>
 
@@ -86,7 +64,7 @@ function field_error(array $errors, string $field): string
           'active' => 'Activo',
           'inactive' => 'Inactivo',
           'blocked' => 'Bloqueado',
-          'pending_verification' => 'Pendiente verificación'
+          'pending_verification' => 'Pendiente verificacion'
         ] as $value => $label): ?>
           <option value="<?= e($value) ?>" <?= (($filters['status'] ?? '') === $value) ? 'selected' : '' ?>>
             <?= e($label) ?>
@@ -110,7 +88,7 @@ function field_error(array $errors, string $field): string
         type="text"
         name="q"
         value="<?= e((string) ($filters['q'] ?? '')) ?>"
-        placeholder="Nombre, correo, teléfono..."
+        placeholder="Nombre, correo, telefono..."
         style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;"
       >
     </div>
@@ -127,10 +105,10 @@ function field_error(array $errors, string $field): string
           <th>Nombre</th>
           <th>Apellido</th>
           <th>Correo</th>
-          <th>Número</th>
+          <th>Numero</th>
           <th>Rol</th>
           <th>Status</th>
-          <th>Último acceso</th>
+          <th>Ultimo acceso</th>
           <th>Acciones</th>
         </tr>
       </thead>
@@ -146,7 +124,7 @@ function field_error(array $errors, string $field): string
               'active' => 'Activo',
               'inactive' => 'Inactivo',
               'blocked' => 'Bloqueado',
-              'pending_verification' => 'Pendiente verificación',
+              'pending_verification' => 'Pendiente verificacion',
               default => $status,
             };
 
@@ -162,13 +140,13 @@ function field_error(array $errors, string $field): string
             <td><?= !empty($user->last_login_at) ? e((string) $user->last_login_at) : 'Nunca' ?></td>
             <td>
               <div class="row-actions" style="display:flex;gap:8px;align-items:center;">
-                <a class="chip" title="Editar" href="/admin/users/edit?id=<?= (int) $user->id ?>">✏️</a>
+                <a class="chip" title="Editar" href="/admin/users/edit?id=<?= (int) $user->id ?>">Editar</a>
 
                 <?php if (!$isCurrentUser): ?>
                   <form method="post" action="/admin/users/delete" style="display:inline;">
                     <?= \app\Core\Csrf::input(); ?>
                     <input type="hidden" name="id" value="<?= (int) $user->id ?>">
-                    <button class="chip" type="submit" title="Eliminar" onclick="return confirm('¿Eliminar este usuario?')">🗑️</button>
+                    <button class="chip" type="submit" title="Eliminar" onclick="return confirm('Eliminar este usuario?')">Eliminar</button>
                   </form>
 
                   <?php if ($status === 'active'): ?>
@@ -176,18 +154,18 @@ function field_error(array $errors, string $field): string
                       <?= \app\Core\Csrf::input(); ?>
                       <input type="hidden" name="id" value="<?= (int) $user->id ?>">
                       <input type="hidden" name="status" value="inactive">
-                      <button class="chip" type="submit" title="Desactivar">⏸️</button>
+                      <button class="chip" type="submit" title="Desactivar">Desactivar</button>
                     </form>
                   <?php else: ?>
                     <form method="post" action="/admin/users/status" style="display:inline;">
                       <?= \app\Core\Csrf::input(); ?>
                       <input type="hidden" name="id" value="<?= (int) $user->id ?>">
                       <input type="hidden" name="status" value="active">
-                      <button class="chip" type="submit" title="Activar">▶️</button>
+                      <button class="chip" type="submit" title="Activar">Activar</button>
                     </form>
                   <?php endif; ?>
                 <?php else: ?>
-                  <span class="chip" title="Tu cuenta">👤</span>
+                  <span class="chip" title="Tu cuenta">Actual</span>
                 <?php endif; ?>
               </div>
             </td>
@@ -211,7 +189,7 @@ function field_error(array $errors, string $field): string
   <div class="modal">
     <div class="modal-head">
       <h3><?= $isEditing ? 'Editar usuario' : 'Invitar usuario' ?></h3>
-      <a class="icon-btn" href="/admin/users">✕</a>
+      <a class="icon-btn" href="/admin/users">Cerrar</a>
     </div>
 
     <form method="post" action="<?= $isEditing ? '/admin/users/update' : '/admin/users/create' ?>">
@@ -254,7 +232,7 @@ function field_error(array $errors, string $field): string
           </div>
 
           <div class="field">
-            <label>Teléfono</label>
+            <label>Telefono</label>
             <input name="phone" placeholder="+57..." value="<?= e((string) ($old['phone'] ?? $editingUser->phone ?? '')) ?>">
             <?php if (field_error($errors, 'phone')): ?>
               <small style="color:#b91c1c;"><?= e(field_error($errors, 'phone')) ?></small>
@@ -281,19 +259,19 @@ function field_error(array $errors, string $field): string
                 <option value="active" <?= $currentStatus === 'active' ? 'selected' : '' ?>>Activo</option>
                 <option value="inactive" <?= $currentStatus === 'inactive' ? 'selected' : '' ?>>Inactivo</option>
                 <option value="blocked" <?= $currentStatus === 'blocked' ? 'selected' : '' ?>>Bloqueado</option>
-                <option value="pending_verification" <?= $currentStatus === 'pending_verification' ? 'selected' : '' ?>>Pendiente verificación</option>
+                <option value="pending_verification" <?= $currentStatus === 'pending_verification' ? 'selected' : '' ?>>Pendiente verificacion</option>
               </select>
             </div>
           <?php else: ?>
             <div class="field">
               <label>Estado inicial</label>
-              <input value="Pendiente verificación" disabled>
+              <input value="Pendiente verificacion" disabled>
             </div>
           <?php endif; ?>
 
           <div class="field">
-            <label><?= $isEditing ? 'Nueva contraseña (opcional)' : 'Contraseña temporal (opcional)' ?></label>
-            <input type="password" name="password" placeholder="<?= $isEditing ? 'Solo si deseas cambiarla' : 'Si la dejas vacía, se genera automáticamente' ?>">
+            <label><?= $isEditing ? 'Nueva contrasena (opcional)' : 'Contrasena temporal (opcional)' ?></label>
+            <input type="password" name="password" placeholder="<?= $isEditing ? 'Solo si deseas cambiarla' : 'Si la dejas vacia, se genera automaticamente' ?>">
             <?php if (field_error($errors, 'password')): ?>
               <small style="color:#b91c1c;"><?= e(field_error($errors, 'password')) ?></small>
             <?php endif; ?>
@@ -302,7 +280,7 @@ function field_error(array $errors, string $field): string
 
         <?php if (!$isEditing): ?>
           <div style="margin-top:14px;padding:12px;border-radius:12px;background:#f8fafc;border:1px solid #e5e7eb;color:#475569;font-size:14px;">
-            Al invitar el usuario, el sistema enviará un correo de verificación. Solo podrá iniciar sesión después de verificar su cuenta.
+            Al invitar el usuario, el sistema enviara un correo de verificacion. Solo podra iniciar sesion despues de verificar su cuenta.
           </div>
         <?php endif; ?>
       </div>

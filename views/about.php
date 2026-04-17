@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sobre Nosotros | Over Alestur</title>
-    <link rel="stylesheet" href="/public/styles/aboutUs.css">
+    <link rel="stylesheet" href="/styles/aboutUs.css">
 </head>
 <body>
 
@@ -25,7 +25,7 @@
         <div class="about-intro-grid">
 
             <div class="about-logo-card">
-                <img src="/public/img/aboutUs/logo.png" alt="Logo Over Alestur">
+                <img src="/img/aboutUs/logo.png" alt="Logo Over Alestur">
             </div>
 
             <div class="about-text-card">

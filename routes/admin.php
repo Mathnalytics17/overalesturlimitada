@@ -12,7 +12,6 @@ use app\Controllers\admin\users\UserManagementController;
 
 use app\Core\Middleware\AuthAdminMiddleware;
 use app\Core\Middleware\GuestAdminMiddleware;
-use app\Controllers\admin\Pqrs\PqrsController;
 use app\Controllers\admin\pqrs\PqrsController as AdminPqrsController;
 
 
@@ -51,7 +50,6 @@ $app->router->post('/admin/pqrs/release', [AdminPqrsController::class, 'release'
 $app->router->get('/admin/pqrs/attachment', [\app\Controllers\admin\pqrs\PqrsController::class, 'attachment'], [
     \app\Core\Middleware\AuthAdminMiddleware::class
 ]);
-$app->router->get('/admin/pqrs/show', [PqrsController::class, 'show']);
 $app->router->post('/admin/leads/note', [LeadController::class, 'note'], [AuthAdminMiddleware::class]);
 $app->router->post('/admin/leads/task', [LeadController::class, 'task'], [AuthAdminMiddleware::class]);
 $app->router->post('/admin/leads/task/complete', [LeadController::class, 'completeTask'], [AuthAdminMiddleware::class]);
@@ -78,6 +76,15 @@ $app->router->get('/admin/users/editUser', [AdminProfileController::class, 'show
 $app->router->post('/admin/users/editUser', [AdminProfileController::class, 'updateProfile'], [AuthAdminMiddleware::class]);
 $app->router->get('/admin/users/changePassword', [AdminProfileController::class, 'showChangePassword'], [AuthAdminMiddleware::class]);
 $app->router->post('/admin/users/changePassword', [AdminProfileController::class, 'changePassword'], [AuthAdminMiddleware::class]);
+
+
+/* admin profile */
+$app->router->get('/admin/profile', [AdminProfileController::class, 'index'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/profile/edit', [AdminProfileController::class, 'showEditProfile'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/profile/edit', [AdminProfileController::class, 'updateProfile'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/profile/change-password', [AdminProfileController::class, 'showChangePassword'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/profile/change-password', [AdminProfileController::class, 'changePassword'], [AuthAdminMiddleware::class]);
+
 
 /* paquetes admin */
 $app->router->get('/admin/packageTour', [PackageTourController::class, 'index'], [AuthAdminMiddleware::class]);
@@ -116,45 +123,61 @@ $app->router->post('/admin/users/status', [UserManagementController::class, 'cha
 
 
 //Ventas
-$app->router->get('/admin/sales', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'index']);
-$app->router->get('/admin/sales/show', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'show']);
+$app->router->get('/admin/sales', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'index'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/sales/show', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'show'], [AuthAdminMiddleware::class]);
 
-$app->router->post('/admin/sales/create-from-lead', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'createFromLead']);
-$app->router->post('/admin/sales/assign', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'assign']);
-$app->router->post('/admin/sales/change-stage', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'changeStage']);
-$app->router->post('/admin/sales/schedule-followup', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'scheduleFollowUp']);
-$app->router->post('/admin/sales/add-note', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'addNote']);
-$app->router->post('/admin/sales/mark-won', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'markWon']);
-$app->router->post('/admin/sales/mark-lost', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'markLost']);
+$app->router->post('/admin/sales/create-from-lead', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'createFromLead'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales/assign', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'assign'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales/change-stage', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'changeStage'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales/schedule-followup', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'scheduleFollowUp'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales/add-note', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'addNote'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales/mark-won', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'markWon'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales/mark-lost', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'markLost'], [AuthAdminMiddleware::class]);
 
-$app->router->post('/admin/sales/payment/report', [\app\Controllers\admin\sales\SalesPaymentController::class, 'store']);
-$app->router->post('/admin/sales/payment/verify', [\app\Controllers\admin\sales\SalesPaymentController::class, 'verify']);
-$app->router->post('/admin/sales/payment/reject', [\app\Controllers\admin\sales\SalesPaymentController::class, 'reject']);
+$app->router->post('/admin/sales/payment/report', [\app\Controllers\admin\sales\SalesPaymentController::class, 'store'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales/payment/verify', [\app\Controllers\admin\sales\SalesPaymentController::class, 'verify'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales/payment/reject', [\app\Controllers\admin\sales\SalesPaymentController::class, 'reject'], [AuthAdminMiddleware::class]);
 
-$app->router->get('/admin/sales/kanban', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'kanban']);
+$app->router->get('/admin/sales/kanban', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'kanban'], [AuthAdminMiddleware::class]);
 
-$app->router->get('/admin/sales/create', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'create']);
-$app->router->post('/admin/sales/create', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'store']);
+$app->router->get('/admin/sales/create', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'create'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales/create', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'store'], [AuthAdminMiddleware::class]);
 
-$app->router->get('/admin/sales/edit', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'edit']);
-$app->router->post('/admin/sales/edit', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'update']);
+$app->router->get('/admin/sales/edit', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'edit'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales/edit', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'update'], [AuthAdminMiddleware::class]);
 
-$app->router->post('/admin/sales/quote/create', [\app\Controllers\admin\sales\SalesQuoteController::class, 'store']);
-$app->router->post('/admin/sales/quote/mark-sent', [\app\Controllers\admin\sales\SalesQuoteController::class, 'markSent']);
-$app->router->post('/admin/sales/quote/mark-accepted', [\app\Controllers\admin\sales\SalesQuoteController::class, 'markAccepted']);
-$app->router->post('/admin/sales/quote/mark-rejected', [\app\Controllers\admin\sales\SalesQuoteController::class, 'markRejected']);
+$app->router->post('/admin/sales/quote/create', [\app\Controllers\admin\sales\SalesQuoteController::class, 'store'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales/quote/mark-sent', [\app\Controllers\admin\sales\SalesQuoteController::class, 'markSent'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales/quote/mark-accepted', [\app\Controllers\admin\sales\SalesQuoteController::class, 'markAccepted'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales/quote/mark-rejected', [\app\Controllers\admin\sales\SalesQuoteController::class, 'markRejected'], [AuthAdminMiddleware::class]);
 
-$app->router->get('/admin/sales-orders', [\app\Controllers\admin\sales\SalesOrderController::class, 'index']);
-$app->router->post('/admin/sales-orders/create-from-opportunity', [\app\Controllers\admin\sales\SalesOrderController::class, 'createFromOpportunity']);
-$app->router->post('/admin/sales-orders/update-operational-status', [\app\Controllers\admin\sales\SalesOrderController::class, 'updateOperationalStatus']);
-$app->router->get('/admin/sales-orders/show', [\app\Controllers\admin\sales\SalesOrderController::class, 'show']);
-$app->router->post('/admin/sales-orders/update-notes', [\app\Controllers\admin\sales\SalesOrderController::class, 'updateNotes']);
-
-
+$app->router->get('/admin/sales-orders', [\app\Controllers\admin\sales\SalesOrderController::class, 'index'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales-orders/create-from-opportunity', [\app\Controllers\admin\sales\SalesOrderController::class, 'createFromOpportunity'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales-orders/update-operational-status', [\app\Controllers\admin\sales\SalesOrderController::class, 'updateOperationalStatus'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/sales-orders/show', [\app\Controllers\admin\sales\SalesOrderController::class, 'show'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/sales-orders/update-notes', [\app\Controllers\admin\sales\SalesOrderController::class, 'updateNotes'], [AuthAdminMiddleware::class]);
 
 
-$app->router->get('/admin/experiences', [\app\Controllers\admin\experience\AdminExperienceController::class, 'index']);
-$app->router->get('/admin/experiences/show', [\app\Controllers\admin\experience\AdminExperienceController::class, 'show']);
-$app->router->post('/admin/experiences/approve', [\app\Controllers\admin\experience\AdminExperienceController::class, 'approve']);
-$app->router->post('/admin/experiences/reject', [\app\Controllers\admin\experience\AdminExperienceController::class, 'reject']);
-$app->router->post('/admin/experiences/update', [\app\Controllers\admin\experience\AdminExperienceController::class, 'update']);
+
+
+$app->router->get('/admin/experiences', [\app\Controllers\admin\experience\AdminExperienceController::class, 'index'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/experiences/show', [\app\Controllers\admin\experience\AdminExperienceController::class, 'show'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/experiences/approve', [\app\Controllers\admin\experience\AdminExperienceController::class, 'approve'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/experiences/reject', [\app\Controllers\admin\experience\AdminExperienceController::class, 'reject'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/experiences/update', [\app\Controllers\admin\experience\AdminExperienceController::class, 'update'], [AuthAdminMiddleware::class]);
+
+$app->router->post('/admin/pqrs/status', [AdminPqrsController::class, 'updateStatus'], [
+    \app\Core\Middleware\AuthAdminMiddleware::class
+]);
+
+$app->router->post('/admin/pqrs/note', [AdminPqrsController::class, 'note'], [
+    \app\Core\Middleware\AuthAdminMiddleware::class
+]);
+
+$app->router->post('/admin/pqrs/task', [AdminPqrsController::class, 'task'], [
+    \app\Core\Middleware\AuthAdminMiddleware::class
+]);
+
+$app->router->post('/admin/pqrs/task/complete', [AdminPqrsController::class, 'completeTask'], [
+    \app\Core\Middleware\AuthAdminMiddleware::class
+]);

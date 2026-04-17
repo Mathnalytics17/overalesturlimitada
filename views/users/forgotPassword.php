@@ -23,6 +23,10 @@
       required
     >
 
+    <div style="margin:12px 0;">
+      <?= turnstile_widget_html(); ?>
+    </div>
+
     <button type="submit">Enviar enlace</button>
   </form>
 </body>

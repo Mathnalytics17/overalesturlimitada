@@ -9,10 +9,18 @@ use app\Models\PqrsCaseTask;
 
 class PqrsService
 {
+    protected const MAX_ATTACHMENTS = 5;
+    protected const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
+
     public function createFromForm(array $payload, array $files = []): array
     {
         $normalized = $this->normalizePayload($payload);
         $errors = $this->validate($normalized, $payload);
+        $attachmentErrors = $this->validateAttachments($files);
+
+        if ($attachmentErrors !== []) {
+            $errors = array_merge($errors, $attachmentErrors);
+        }
 
         if ($errors !== []) {
             return [
@@ -305,6 +313,47 @@ class PqrsService
         return $errors;
     }
 
+    protected function validateAttachments(array $files): array
+    {
+        if (empty($files['attachments']) || !is_array($files['attachments']['name'] ?? null)) {
+            return [];
+        }
+
+        $errors = [];
+        $names = $files['attachments']['name'] ?? [];
+        $tmpNames = $files['attachments']['tmp_name'] ?? [];
+        $sizes = $files['attachments']['size'] ?? [];
+        $uploadErrors = $files['attachments']['error'] ?? [];
+
+        $providedFiles = 0;
+
+        foreach ($names as $index => $originalName) {
+            if (($uploadErrors[$index] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+
+            $providedFiles++;
+            $validation = $this->validateAttachmentFile([
+                'name' => $originalName,
+                'tmp_name' => $tmpNames[$index] ?? null,
+                'size' => $sizes[$index] ?? 0,
+                'error' => $uploadErrors[$index] ?? UPLOAD_ERR_NO_FILE,
+            ]);
+
+            if ($validation['success']) {
+                continue;
+            }
+
+            $errors = array_merge($errors, $validation['errors']);
+        }
+
+        if ($providedFiles > self::MAX_ATTACHMENTS) {
+            $errors[] = 'Solo se permiten hasta ' . self::MAX_ATTACHMENTS . ' adjuntos por solicitud.';
+        }
+
+        return $errors;
+    }
+
     protected function generateRadicado(): string
     {
         return 'PQRS-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
@@ -346,26 +395,33 @@ class PqrsService
 
         $names = $files['attachments']['name'] ?? [];
         $tmpNames = $files['attachments']['tmp_name'] ?? [];
-        $types = $files['attachments']['type'] ?? [];
         $sizes = $files['attachments']['size'] ?? [];
         $errors = $files['attachments']['error'] ?? [];
 
         foreach ($names as $i => $originalName) {
-            if (($errors[$i] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            $file = [
+                'name' => $originalName,
+                'tmp_name' => $tmpNames[$i] ?? null,
+                'size' => $sizes[$i] ?? 0,
+                'error' => $errors[$i] ?? UPLOAD_ERR_NO_FILE,
+            ];
+
+            if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
                 continue;
             }
 
-            $tmp = $tmpNames[$i] ?? null;
+            $validation = $this->validateAttachmentFile($file);
+            if (!$validation['success']) {
+                continue;
+            }
+
+            $tmp = $file['tmp_name'] ?? null;
             if (!$tmp || !is_uploaded_file($tmp)) {
                 continue;
             }
 
-            $extension = strtolower(pathinfo((string) $originalName, PATHINFO_EXTENSION));
-            $allowed = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
-
-            if (!in_array($extension, $allowed, true)) {
-                continue;
-            }
+            $extension = $validation['extension'];
+            $mimeType = $validation['mime_type'];
 
             $storedName = 'pqrs_' . $caseId . '_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
             $targetPath = $uploadDir . DIRECTORY_SEPARATOR . $storedName;
@@ -379,8 +435,8 @@ class PqrsService
                 'original_name' => (string) $originalName,
                 'stored_name' => $storedName,
                 'file_path' => 'runtime/uploads/pqrs/' . date('Y/m') . '/' . $storedName,
-                'mime_type' => (string) ($types[$i] ?? 'application/octet-stream'),
-                'file_size' => (int) ($sizes[$i] ?? 0),
+                'mime_type' => $mimeType,
+                'file_size' => (int) ($file['size'] ?? 0),
                 'created_at' => now(),
             ]);
 
@@ -388,5 +444,108 @@ class PqrsService
         }
 
         return $count;
+    }
+
+    protected function validateAttachmentFile(array $file): array
+    {
+        $errorCode = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($errorCode === UPLOAD_ERR_NO_FILE) {
+            return [
+                'success' => true,
+                'errors' => [],
+            ];
+        }
+
+        if ($errorCode !== UPLOAD_ERR_OK) {
+            return [
+                'success' => false,
+                'errors' => ['Uno de los adjuntos no pudo cargarse correctamente.'],
+            ];
+        }
+
+        $tmpName = (string) ($file['tmp_name'] ?? '');
+        if ($tmpName === '' || !is_file($tmpName)) {
+            return [
+                'success' => false,
+                'errors' => ['Uno de los adjuntos no es valido.'],
+            ];
+        }
+
+        $size = (int) ($file['size'] ?? 0);
+        if ($size <= 0) {
+            return [
+                'success' => false,
+                'errors' => ['Uno de los adjuntos esta vacio o no es valido.'],
+            ];
+        }
+
+        if ($size > self::MAX_ATTACHMENT_SIZE) {
+            return [
+                'success' => false,
+                'errors' => ['Cada adjunto debe pesar maximo 10MB.'],
+            ];
+        }
+
+        $originalName = (string) ($file['name'] ?? '');
+        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+
+        $allowedByExtension = [
+            'pdf' => ['application/pdf'],
+            'jpg' => ['image/jpeg'],
+            'jpeg' => ['image/jpeg'],
+            'png' => ['image/png'],
+            'doc' => ['application/msword', 'application/octet-stream'],
+            'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'],
+        ];
+
+        if (!isset($allowedByExtension[$extension])) {
+            return [
+                'success' => false,
+                'errors' => ['Solo se permiten adjuntos PDF, JPG, JPEG, PNG, DOC o DOCX.'],
+            ];
+        }
+
+        $mimeType = $this->detectMimeType($tmpName);
+        if ($mimeType === null || !in_array($mimeType, $allowedByExtension[$extension], true)) {
+            return [
+                'success' => false,
+                'errors' => ['Uno de los adjuntos no coincide con el tipo de archivo permitido.'],
+            ];
+        }
+
+        if (str_starts_with($mimeType, 'image/')) {
+            $imageInfo = @getimagesize($tmpName);
+            if ($imageInfo === false) {
+                return [
+                    'success' => false,
+                    'errors' => ['Uno de los adjuntos de imagen no es valido.'],
+                ];
+            }
+        }
+
+        return [
+            'success' => true,
+            'errors' => [],
+            'extension' => $extension,
+            'mime_type' => $mimeType,
+        ];
+    }
+
+    protected function detectMimeType(string $path): ?string
+    {
+        if (!is_file($path)) {
+            return null;
+        }
+
+        if (class_exists(\finfo::class)) {
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->file($path);
+            if (is_string($mimeType) && $mimeType !== '') {
+                return $mimeType;
+            }
+        }
+
+        $mimeType = mime_content_type($path);
+        return is_string($mimeType) && $mimeType !== '' ? $mimeType : null;
     }
 }

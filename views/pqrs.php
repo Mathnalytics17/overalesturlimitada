@@ -55,7 +55,7 @@
       </div>
 
       <div>
-       <div class="mb-3 checkbox-container">
+<div class="mb-3 checkbox-container">
   <input 
     type="checkbox" 
     id="acepta" 
@@ -71,6 +71,10 @@
     </a>
   </label>
 </div>
+
+      <div style="margin:12px 0;">
+        <?= turnstile_widget_html(); ?>
+      </div>
 
         <button type="submit">Enviar solicitud</button>
       </div>

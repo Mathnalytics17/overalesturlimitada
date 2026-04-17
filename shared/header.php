@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
        
 
         <div>
-          <img class="image-colombia" src="/public/img/header/image (29).png"/>
+          <img class="image-colombia" src="/img/header/image (29).png"/>
         </div>
 
       </div>

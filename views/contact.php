@@ -46,6 +46,10 @@
   </label>
 </div>
 
+    <div style="margin:12px 0;">
+      <?= turnstile_widget_html(); ?>
+    </div>
+
     <button type="submit" class="btn btn-primary">Enviar</button>
   </form>
 </div>

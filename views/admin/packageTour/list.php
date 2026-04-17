@@ -14,7 +14,7 @@ $packages = $packages ?? [];
   
 
     <main class="main">
-      <header class="topbar">
+      
         <div class="top-left">
           <div class="page-title">
             <h1>Paquetes turísticos</h1>
@@ -25,7 +25,7 @@ $packages = $packages ?? [];
         <div class="top-right">
           <a href="/admin/packageTour/create" class="btn primary" style="text-decoration:none;">+ Crear paquete</a>
         </div>
-      </header>
+    
 
       <section class="content">
         <div class="card">

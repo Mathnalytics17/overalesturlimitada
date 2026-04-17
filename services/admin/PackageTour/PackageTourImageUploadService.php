@@ -4,6 +4,9 @@ namespace app\Services\Admin\PackageTour;
 
 class PackageTourImageUploadService
 {
+    protected const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+    protected const MAX_GALLERY_IMAGES = 10;
+
     protected string $publicRoot;
     protected string $publicBaseDir = '/img/packageTourist';
 
@@ -132,6 +135,16 @@ class PackageTourImageUploadService
 
         $count = is_array($names) ? count($names) : 0;
 
+        if ($count > self::MAX_GALLERY_IMAGES) {
+            return [
+                'success' => false,
+                'errors' => [
+                    'gallery_files' => ['Solo se permiten hasta ' . self::MAX_GALLERY_IMAGES . ' imagenes por galeria.'],
+                ],
+                'data' => [],
+            ];
+        }
+
         for ($i = 0; $i < $count; $i++) {
             if (($errors[$i] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
                 continue;
@@ -149,7 +162,7 @@ class PackageTourImageUploadService
                 return [
                     'success' => false,
                     'errors' => [
-                        'gallery_files' => ['Error al subir una imagen de la galería.'],
+                        'gallery_files' => ['Error al subir una imagen de la galeria.'],
                     ],
                     'data' => [],
                 ];
@@ -160,7 +173,7 @@ class PackageTourImageUploadService
                 return [
                     'success' => false,
                     'errors' => [
-                        'gallery_files' => $validation['errors']['image'] ?? ['Archivo inválido en la galería.'],
+                        'gallery_files' => $validation['errors']['image'] ?? ['Archivo invalido en la galeria.'],
                     ],
                     'data' => [],
                 ];
@@ -176,7 +189,7 @@ class PackageTourImageUploadService
                 return [
                     'success' => false,
                     'errors' => [
-                        'gallery_files' => ['No fue posible guardar una imagen de la galería.'],
+                        'gallery_files' => ['No fue posible guardar una imagen de la galeria.'],
                     ],
                     'data' => [],
                 ];
@@ -193,18 +206,25 @@ class PackageTourImageUploadService
 
     protected function validateImageFile(array $file): array
     {
-        $maxSize = 10 * 1024 * 1024;
-
-        if (($file['size'] ?? 0) > $maxSize) {
+        if (!isset($file['tmp_name']) || !is_file($file['tmp_name'])) {
             return [
                 'success' => false,
                 'errors' => [
-                    'image' => ['La imagen supera el tamaño máximo permitido de 10MB.'],
+                    'image' => ['El archivo temporal no es valido.'],
                 ],
             ];
         }
 
-        $mime = mime_content_type($file['tmp_name']);
+        if (($file['size'] ?? 0) > self::MAX_IMAGE_SIZE) {
+            return [
+                'success' => false,
+                'errors' => [
+                    'image' => ['La imagen supera el tamano maximo permitido de 10MB.'],
+                ],
+            ];
+        }
+
+        $mime = $this->detectMimeType((string) $file['tmp_name']);
         $allowed = [
             'image/jpeg' => 'jpg',
             'image/png' => 'png',
@@ -216,7 +236,16 @@ class PackageTourImageUploadService
             return [
                 'success' => false,
                 'errors' => [
-                    'image' => ['Solo se permiten imágenes JPG, PNG, WEBP o GIF.'],
+                    'image' => ['Solo se permiten imagenes JPG, PNG, WEBP o GIF.'],
+                ],
+            ];
+        }
+
+        if (@getimagesize((string) $file['tmp_name']) === false) {
+            return [
+                'success' => false,
+                'errors' => [
+                    'image' => ['El archivo no contiene una imagen valida.'],
                 ],
             ];
         }
@@ -225,6 +254,20 @@ class PackageTourImageUploadService
             'success' => true,
             'extension' => $allowed[$mime],
         ];
+    }
+
+    protected function detectMimeType(string $path): ?string
+    {
+        if (class_exists(\finfo::class)) {
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->file($path);
+            if (is_string($mimeType) && $mimeType !== '') {
+                return $mimeType;
+            }
+        }
+
+        $mimeType = mime_content_type($path);
+        return is_string($mimeType) && $mimeType !== '' ? $mimeType : null;
     }
 
     protected function sanitizeFolderName(string $value): string

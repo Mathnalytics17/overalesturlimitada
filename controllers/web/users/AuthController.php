@@ -4,8 +4,8 @@ namespace app\Controllers\Web\Users;
 
 use app\Core\Controller;
 use app\Core\Csrf;
+use app\Core\RateLimiter;
 use app\Services\Web\Users\CustomerAuthService;
-use app\Core\Flash;
 
 class AuthController extends Controller
 {
@@ -14,7 +14,7 @@ class AuthController extends Controller
         return $this->render('users/login', [
             'errors' => [],
             'message' => null,
-        ]);
+        ],'mainUserLayout');
     }
 
     public function login()
@@ -24,18 +24,50 @@ class AuthController extends Controller
             exit('CSRF inválido');
         }
 
+        $ipAddress = client_ip();
+        $email = trim(mb_strtolower((string) ($_POST['email'] ?? '')));
+        $rateLimitKey = rate_limit_key('customer_login', $ipAddress, $email);
+
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 5, 900)) {
+            return $this->render('users/login', [
+                'errors' => [
+                    'auth' => ['Demasiados intentos. Espera unos minutos antes de volver a intentar.'],
+                ],
+                'message' => 'Demasiados intentos de inicio de sesion.',
+                'old' => [
+                    'email' => $_POST['email'] ?? '',
+                ],
+            ]);
+        }
+
+        $turnstile = validate_turnstile($_POST['cf-turnstile-response'] ?? null, $ipAddress);
+        if (!$turnstile['success']) {
+            return $this->render('users/login', [
+                'errors' => [
+                    'auth' => [$turnstile['message'] ?? 'Debes completar la verificacion de seguridad.'],
+                ],
+                'message' => $turnstile['message'] ?? null,
+                'old' => [
+                    'email' => $_POST['email'] ?? '',
+                ],
+            ]);
+        }
+
         $service = new CustomerAuthService();
 
         $result = $service->login(
-            email: $_POST['email'] ?? '',
+            email: $email,
             password: $_POST['password'] ?? '',
-            ipAddress: $_SERVER['REMOTE_ADDR'] ?? null,
+            ipAddress: $ipAddress,
             userAgent: $_SERVER['HTTP_USER_AGENT'] ?? null
         );
 
         if ($result['success']) {
+            RateLimiter::clear($rateLimitKey);
             redirect('/users/user');
         }
+
+        RateLimiter::hit($rateLimitKey, 900);
 
         return $this->render('users/login', [
             'errors' => $result['errors'] ?? [],
@@ -43,7 +75,7 @@ class AuthController extends Controller
             'old' => [
                 'email' => $_POST['email'] ?? '',
             ],
-        ]);
+        ],'mainUserLayout');
     }
 
     public function logout()
@@ -51,7 +83,7 @@ class AuthController extends Controller
         $service = new CustomerAuthService();
 
         $service->logout(
-            ipAddress: $_SERVER['REMOTE_ADDR'] ?? null,
+            ipAddress: client_ip(),
             userAgent: $_SERVER['HTTP_USER_AGENT'] ?? null
         );
 

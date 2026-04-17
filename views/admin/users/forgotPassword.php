@@ -17,7 +17,7 @@ function admin_forgot_error(array $errors, string $field): ?string
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Olvidé mi contraseña admin</title>
-  <link rel="stylesheet" href="/public/styles/admin.css" />
+  <link rel="stylesheet" href="/styles/admin.css" />
 </head>
 <body>
   <div class="login">
@@ -41,6 +41,10 @@ function admin_forgot_error(array $errors, string $field): ?string
             <?php if (admin_forgot_error($errors, 'email')): ?>
               <small style="color:#b91c1c;"><?= htmlspecialchars(admin_forgot_error($errors, 'email')) ?></small>
             <?php endif; ?>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <?= turnstile_widget_html(); ?>
           </div>
 
           <button type="submit" class="btn primary">Enviar enlace</button>

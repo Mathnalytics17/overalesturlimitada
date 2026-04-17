@@ -4,6 +4,9 @@ namespace app\Services\Experience;
 
 class TravelExperienceImageUploadService
 {
+    protected const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+    protected const MAX_EXPERIENCE_IMAGES = 10;
+
     protected string $publicRoot;
     protected string $publicBaseDir = '/img/experiences';
 
@@ -36,7 +39,7 @@ class TravelExperienceImageUploadService
                 return [
                     'success' => false,
                     'errors' => [
-                        'experience_images' => ['No fue posible crear la carpeta de imágenes.'],
+                        'experience_images' => ['No fue posible crear la carpeta de imagenes.'],
                     ],
                     'paths' => [],
                 ];
@@ -50,6 +53,16 @@ class TravelExperienceImageUploadService
         $types = $files['experience_images']['type'] ?? [];
 
         $count = is_array($names) ? count($names) : 0;
+
+        if ($count > self::MAX_EXPERIENCE_IMAGES) {
+            return [
+                'success' => false,
+                'errors' => [
+                    'experience_images' => ['Solo se permiten hasta ' . self::MAX_EXPERIENCE_IMAGES . ' imagenes por experiencia.'],
+                ],
+                'paths' => [],
+            ];
+        }
 
         for ($i = 0; $i < $count; $i++) {
             if (($errors[$i] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
@@ -73,7 +86,7 @@ class TravelExperienceImageUploadService
             if (!$validation['success']) {
                 $result['errors']['experience_images'] = array_merge(
                     $result['errors']['experience_images'] ?? [],
-                    $validation['errors']['image'] ?? ['Archivo inválido.']
+                    $validation['errors']['image'] ?? ['Archivo invalido.']
                 );
                 continue;
             }
@@ -85,7 +98,7 @@ class TravelExperienceImageUploadService
             $relativePath = $relativeDir . '/' . $fileName;
 
             if (!is_uploaded_file($file['tmp_name']) || !move_uploaded_file($file['tmp_name'], $absolutePath)) {
-                $result['errors']['experience_images'][] = 'No fue posible guardar una de las imágenes.';
+                $result['errors']['experience_images'][] = 'No fue posible guardar una de las imagenes.';
                 continue;
             }
 
@@ -101,27 +114,25 @@ class TravelExperienceImageUploadService
 
     protected function validateImageFile(array $file): array
     {
-        $maxSize = 10 * 1024 * 1024;
-
         if (!isset($file['tmp_name']) || !is_file($file['tmp_name'])) {
             return [
                 'success' => false,
                 'errors' => [
-                    'image' => ['El archivo temporal no es válido.'],
+                    'image' => ['El archivo temporal no es valido.'],
                 ],
             ];
         }
 
-        if (($file['size'] ?? 0) > $maxSize) {
+        if (($file['size'] ?? 0) > self::MAX_IMAGE_SIZE) {
             return [
                 'success' => false,
                 'errors' => [
-                    'image' => ['La imagen supera el tamaño máximo permitido de 10MB.'],
+                    'image' => ['La imagen supera el tamano maximo permitido de 10MB.'],
                 ],
             ];
         }
 
-        $mime = mime_content_type($file['tmp_name']);
+        $mime = $this->detectMimeType((string) $file['tmp_name']);
         $allowed = [
             'image/jpeg' => 'jpg',
             'image/png' => 'png',
@@ -133,7 +144,16 @@ class TravelExperienceImageUploadService
             return [
                 'success' => false,
                 'errors' => [
-                    'image' => ['Solo se permiten imágenes JPG, PNG, WEBP o GIF.'],
+                    'image' => ['Solo se permiten imagenes JPG, PNG, WEBP o GIF.'],
+                ],
+            ];
+        }
+
+        if (@getimagesize((string) $file['tmp_name']) === false) {
+            return [
+                'success' => false,
+                'errors' => [
+                    'image' => ['El archivo no contiene una imagen valida.'],
                 ],
             ];
         }
@@ -142,5 +162,19 @@ class TravelExperienceImageUploadService
             'success' => true,
             'extension' => $allowed[$mime],
         ];
+    }
+
+    protected function detectMimeType(string $path): ?string
+    {
+        if (class_exists(\finfo::class)) {
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->file($path);
+            if (is_string($mimeType) && $mimeType !== '') {
+                return $mimeType;
+            }
+        }
+
+        $mimeType = mime_content_type($path);
+        return is_string($mimeType) && $mimeType !== '' ? $mimeType : null;
     }
 }

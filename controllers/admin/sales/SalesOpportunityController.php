@@ -9,7 +9,7 @@ use app\Models\SalesOpportunity;
 use app\Models\SalesOpportunityEvent;
 use app\Services\Admin\Sales\SalesOpportunityService;
 use app\Models\AdminUser;
-
+use app\Core\Flash;
 class SalesOpportunityController extends Controller
 {
     protected SalesOpportunityService $service;
@@ -125,51 +125,66 @@ class SalesOpportunityController extends Controller
     }
 
     public function createFromLead()
-    {
-        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            http_response_code(419);
-            exit('CSRF inválido');
-        }
-
-        $leadId = (int) ($_POST['lead_id'] ?? 0);
-        $returnTo = trim((string) ($_POST['return_to'] ?? '/admin/leads'));
-        $adminId = (int) (AdminAuth::id() ?? 0);
-
-        $result = $this->service->createFromLead($leadId, $adminId > 0 ? $adminId : null);
-
-        if (!empty($result['opportunity'])) {
-            \redirect('/admin/sales/show?id=' . (int) $result['opportunity']->id . '&return_to=' . urlencode($this->safeReturnTo($returnTo, '/admin/leads')));
-        }
-
-        \redirect($this->safeReturnTo($returnTo, '/admin/leads'));
+{
+    if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+        http_response_code(419);
+        exit('CSRF inválido');
     }
+
+    $leadId = (int) ($_POST['lead_id'] ?? 0);
+    $returnTo = trim((string) ($_POST['return_to'] ?? '/admin/leads'));
+    $adminId = (int) (AdminAuth::id() ?? 0);
+
+    $safeReturnTo = $this->safeReturnTo($returnTo, '/admin/leads');
+
+    $result = $this->service->createFromLead($leadId, $adminId > 0 ? $adminId : null);
+
+    if (!empty($result['opportunity'])) {
+        Flash::success('La oportunidad comercial fue creada correctamente.');
+        \redirect('/admin/sales/show?id=' . (int) $result['opportunity']->id . '&return_to=' . urlencode($safeReturnTo));
+        exit;
+    }
+
+    Flash::error($result['message'] ?? 'No fue posible crear la oportunidad desde el lead.');
+    \redirect($safeReturnTo);
+    exit;
+}
 
     public function assign()
-    {
-        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            http_response_code(419);
-            exit('CSRF inválido');
-        }
-
-        $id = (int) ($_POST['id'] ?? 0);
-        $returnTo = trim((string) ($_POST['return_to'] ?? ''));
-        $action = trim((string) ($_POST['action'] ?? 'stay'));
-        $adminId = (int) (AdminAuth::id() ?? 0);
-
-        if ($id > 0 && $adminId > 0) {
-            $this->service->assign($id, $adminId);
-        }
-
-        $safeReturnTo = $this->safeReturnTo($returnTo, '/admin/sales');
-        $showUrl = '/admin/sales/show?id=' . $id . '&return_to=' . urlencode($safeReturnTo);
-
-        if ($action === 'back') {
-            \redirect($safeReturnTo);
-        }
-
-        \redirect($showUrl . '&focus_note=1');
+{
+    if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+        http_response_code(419);
+        exit('CSRF inválido');
     }
 
+    $id = (int) ($_POST['id'] ?? 0);
+    $returnTo = trim((string) ($_POST['return_to'] ?? ''));
+    $action = trim((string) ($_POST['action'] ?? 'stay'));
+    $adminId = (int) (AdminAuth::id() ?? 0);
+
+    if ($id > 0 && $adminId > 0) {
+        $this->service->assign($id, $adminId);
+
+        if ($action === 'back') {
+            Flash::success('La oportunidad fue tomada correctamente.');
+        }
+    } else {
+        if ($action === 'back') {
+            Flash::error('No fue posible tomar la oportunidad.');
+        }
+    }
+
+    $safeReturnTo = $this->safeReturnTo($returnTo, '/admin/sales');
+    $showUrl = '/admin/sales/show?id=' . $id . '&return_to=' . urlencode($safeReturnTo);
+
+    if ($action === 'back') {
+        \redirect($safeReturnTo);
+        exit;
+    }
+
+    \redirect($showUrl . '&focus_note=1');
+    exit;
+}
     public function changeStage()
     {
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
@@ -236,47 +251,54 @@ class SalesOpportunityController extends Controller
     }
 
     public function markWon()
-    {
-        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            http_response_code(419);
-            exit('CSRF inválido');
-        }
-
-        $id = (int) ($_POST['id'] ?? 0);
-        $returnTo = trim((string) ($_POST['return_to'] ?? ''));
-        $adminId = (int) (AdminAuth::id() ?? 0);
-
-        $this->service->markWon($id, $adminId > 0 ? $adminId : null);
-
-        $fallback = '/admin/sales/show?id=' . $id . '&return_to=' . urlencode($this->safeReturnTo($returnTo, '/admin/sales'));
-        \redirect($fallback);
+{
+    if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+        http_response_code(419);
+        exit('CSRF inválido');
     }
 
-    public function markLost()
-    {
-        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            http_response_code(419);
-            exit('CSRF inválido');
-        }
+    $id = (int) ($_POST['id'] ?? 0);
+    $returnTo = trim((string) ($_POST['return_to'] ?? ''));
+    $adminId = (int) (AdminAuth::id() ?? 0);
 
-        $id = (int) ($_POST['id'] ?? 0);
-        $reasonCode = trim((string) ($_POST['lost_reason_code'] ?? ''));
-        $reasonDetail = trim((string) ($_POST['lost_reason_detail'] ?? ''));
-        $returnTo = trim((string) ($_POST['return_to'] ?? ''));
-        $adminId = (int) (AdminAuth::id() ?? 0);
+    $this->service->markWon($id, $adminId > 0 ? $adminId : null);
 
-        if ($reasonCode !== '') {
-            $this->service->markLost(
-                $id,
-                $reasonCode,
-                $reasonDetail !== '' ? $reasonDetail : null,
-                $adminId > 0 ? $adminId : null
-            );
-        }
+    Flash::success('La oportunidad fue marcada como ganada correctamente.');
 
-        $fallback = '/admin/sales/show?id=' . $id . '&return_to=' . urlencode($this->safeReturnTo($returnTo, '/admin/sales'));
-        \redirect($fallback);
+    $fallback = '/admin/sales/show?id=' . $id . '&return_to=' . urlencode($this->safeReturnTo($returnTo, '/admin/sales'));
+    \redirect($fallback);
+    exit;
+}
+   public function markLost()
+{
+    if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+        http_response_code(419);
+        exit('CSRF inválido');
     }
+
+    $id = (int) ($_POST['id'] ?? 0);
+    $reasonCode = trim((string) ($_POST['lost_reason_code'] ?? ''));
+    $reasonDetail = trim((string) ($_POST['lost_reason_detail'] ?? ''));
+    $returnTo = trim((string) ($_POST['return_to'] ?? ''));
+    $adminId = (int) (AdminAuth::id() ?? 0);
+
+    if ($reasonCode !== '') {
+        $this->service->markLost(
+            $id,
+            $reasonCode,
+            $reasonDetail !== '' ? $reasonDetail : null,
+            $adminId > 0 ? $adminId : null
+        );
+
+        Flash::success('La oportunidad fue marcada como perdida correctamente.');
+    } else {
+        Flash::error('Debes seleccionar un motivo de pérdida.');
+    }
+
+    $fallback = '/admin/sales/show?id=' . $id . '&return_to=' . urlencode($this->safeReturnTo($returnTo, '/admin/sales'));
+    \redirect($fallback);
+    exit;
+}
 
     public function kanban()
     {

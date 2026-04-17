@@ -10,7 +10,7 @@ $softBorder = $success ? '#bbf7d0' : '#fecaca';
 $iconBg = $success ? '#22c55e' : '#ef4444';
 $icon = $success ? '✓' : '!';
 ?>
-<link rel="stylesheet" href="/public/styles/admin.css" />
+<link rel="stylesheet" href="/styles/admin.css" />
 <div class="login">
   <div class="login-left">
     <div class="login-card" style="width:min(560px, 94vw);">

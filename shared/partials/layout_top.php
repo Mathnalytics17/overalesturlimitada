@@ -15,7 +15,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><?php echo htmlspecialchars($page_title); ?></title>
-  <link rel="stylesheet" href="/public/styles/admin.css" />
+  <link rel="stylesheet" href="/styles/admin.css" />
 </head>
 <body>
 <div class="app">

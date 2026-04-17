@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/public/styles/footer.css">
+  <link rel="stylesheet" href="/styles/footer.css">
 </head>
 <body>
 
@@ -58,10 +58,10 @@
     <div class="footer-column">
       <h4>Aliados y asociaciones</h4>
       <div class="footer-logos">
-        <img src="/public/img/footer/image (24).png" alt="Logo asociación 1">
-        <img src="/public/img/footer/image (25).png" alt="Logo asociación 2">
-        <img src="/public/img/footer/image (26).png" alt="Logo asociación 3">
-        <img src="/public/img/footer/image (28).png" alt="Logo asociación 4">
+        <img src="/img/footer/image (24).png" alt="Logo asociación 1">
+        <img src="/img/footer/image (25).png" alt="Logo asociación 2">
+        <img src="/img/footer/image (26).png" alt="Logo asociación 3">
+        <img src="/img/footer/image (28).png" alt="Logo asociación 4">
       </div>
     </div>
 

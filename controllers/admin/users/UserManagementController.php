@@ -54,12 +54,6 @@ class UserManagementController extends Controller
         if (!empty($result['success'])) {
             Flash::success($result['message'] ?? 'Usuario creado correctamente.');
 
-            Flash::set('createdUserInfo', [
-                'email' => $result['user']->email ?? null,
-                'verification_url' => $result['verification_url'] ?? null,
-                'generated_password' => $result['generated_password'] ?? null,
-            ]);
-
             redirect('/admin/users');
             exit;
         }

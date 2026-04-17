@@ -41,6 +41,7 @@ class ExperienceController extends Controller
     return $this->render('experiences/index', [
         'items' => $items,
         'flashModal' => $flashModal,
+        'title' => 'Experiencias'
     ], 'mainUserLayout');
 }
 

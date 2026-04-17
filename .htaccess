@@ -1,5 +1,14 @@
+Options -Indexes
 RewriteEngine On
 
+# Never expose framework, config, logs or vendor files even if the host points
+# to the project root instead of /public.
+RewriteRule ^(?:\.env(?:\..*)?|composer\.(?:json|lock)|php-error\.log)$ - [F,L,NC]
+RewriteRule ^(?:core|controllers|models|services|views|routes|migrations|shared|vendor|runtime)(?:/|$) - [F,L,NC]
+
+# When the hosting document root is the repository root, internally serve the
+# application from /public without changing public URLs.
+RewriteCond %{REQUEST_URI} !^/public/
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [L,QSA]
+RewriteRule ^(.*)$ public/$1 [L,QSA]

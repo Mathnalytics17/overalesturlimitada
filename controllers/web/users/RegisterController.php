@@ -4,8 +4,8 @@ namespace app\Controllers\Web\Users;
 
 use app\Core\Controller;
 use app\Core\Csrf;
+use app\Core\RateLimiter;
 use app\Services\Web\Users\CustomerRegisterService;
-use app\Core\Flash;
 
 class RegisterController extends Controller
 {
@@ -24,17 +24,45 @@ class RegisterController extends Controller
             exit('CSRF inválido');
         }
 
+        $ipAddress = client_ip();
+        $email = trim(mb_strtolower((string) ($_POST['email'] ?? '')));
+        $rateLimitKey = rate_limit_key('customer_register', $ipAddress, $email);
+
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 3, 3600)) {
+            return $this->render('users/register', [
+                'errors' => [
+                    'email' => ['Demasiados intentos de registro. Espera un tiempo antes de volver a intentarlo.'],
+                ],
+                'message' => 'Demasiados intentos de registro.',
+                'old' => $_POST,
+            ]);
+        }
+
+        $turnstile = validate_turnstile($_POST['cf-turnstile-response'] ?? null, $ipAddress);
+        if (!$turnstile['success']) {
+            return $this->render('users/register', [
+                'errors' => [
+                    'email' => [$turnstile['message'] ?? 'Debes completar la verificacion de seguridad.'],
+                ],
+                'message' => $turnstile['message'] ?? null,
+                'old' => $_POST,
+            ]);
+        }
+
         $service = new CustomerRegisterService();
         $result = $service->register($_POST);
 
         if ($result['success']) {
+            RateLimiter::clear($rateLimitKey);
             redirect('/users/login');
         }
+
+        RateLimiter::hit($rateLimitKey, 3600);
 
         return $this->render('users/register', [
             'errors' => $result['errors'] ?? [],
             'message' => $result['message'] ?? null,
             'old' => $_POST,
-        ]);
+        ],'mainUserLayout');
     }
 }

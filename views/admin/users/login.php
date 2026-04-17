@@ -17,7 +17,7 @@ function admin_login_error(array $errors, string $field): ?string
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login Admin</title>
-  <link rel="stylesheet" href="/public/styles/admin.css" />
+  <link rel="stylesheet" href="/styles/admin.css" />
 </head>
 <body>
   <div class="login">
@@ -61,6 +61,10 @@ function admin_login_error(array $errors, string $field): ?string
               <?= htmlspecialchars(admin_login_error($errors, 'auth')) ?>
             </div>
           <?php endif; ?>
+
+          <div style="margin-bottom:12px;">
+            <?= turnstile_widget_html(); ?>
+          </div>
 
           <button class="btn primary" style="width:100%;" type="submit">Entrar</button>
         </form>

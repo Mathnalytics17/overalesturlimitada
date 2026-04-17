@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Document</title>
-  <link rel="stylesheet" href="/public/styles/contact.css" />
+  <link rel="stylesheet" href="/styles/contact.css" />
 </head>
 
 <body>
@@ -75,7 +75,7 @@
         </small>
       </div>
 
-    <div class="mb-3 checkbox-container">
+<div class="mb-3 checkbox-container">
   <input 
     type="checkbox" 
     id="acepta" 
@@ -91,6 +91,10 @@
     </a>
   </label>
 </div>
+
+      <div style="margin:12px 0;">
+        <?= turnstile_widget_html(); ?>
+      </div>
 
       <button type="submit" class="btn btn-primary">Enviar</button>
     </form>

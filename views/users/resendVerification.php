@@ -12,19 +12,13 @@
     <p><?= htmlspecialchars($message) ?></p>
   <?php endif; ?>
 
-  <?php if (!empty($debug_verification_url)): ?>
-    <p>
-      <strong>Link de prueba:</strong>
-      <a href="<?= htmlspecialchars($debug_verification_url) ?>">
-        <?= htmlspecialchars($debug_verification_url) ?>
-      </a>
-    </p>
-  <?php endif; ?>
-
   <form method="POST" action="/users/resendVerification">
     <?= Csrf::input(); ?>
     <label>Correo</label>
     <input type="email" name="email" value="<?= htmlspecialchars($old['email'] ?? '') ?>">
+    <div style="margin:12px 0;">
+      <?= turnstile_widget_html(); ?>
+    </div>
     <button type="submit">Reenviar enlace</button>
   </form>
 </body>

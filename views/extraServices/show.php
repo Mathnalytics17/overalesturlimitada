@@ -350,6 +350,10 @@ function service_error(array $errors, string $field): ?string
           <small class="error"><?= e(service_error($errors, 'acepta')) ?></small>
         <?php endif; ?>
 
+        <div style="margin:12px 0;">
+          <?= turnstile_widget_html(); ?>
+        </div>
+
         <div class="modal-actions">
           <button type="submit" class="btn btn-primary">Enviar solicitud</button>
 

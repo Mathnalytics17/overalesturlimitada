@@ -97,8 +97,7 @@ class Request
 
     public function getIpAddress(): ?string
     {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? null;
-        return is_string($ip) && filter_var($ip, FILTER_VALIDATE_IP) ? $ip : null;
+        return client_ip();
     }
 
     public function getUserAgent(): ?string

@@ -6,7 +6,7 @@ use app\Core\AdminAuth;
 use app\Core\Controller;
 use app\Core\Csrf;
 use app\Services\Admin\Users\AdminProfileService;
-use app\Core\Flash;
+
 class ProfileController extends Controller
 {
     public function index()
@@ -15,10 +15,14 @@ class ProfileController extends Controller
 
         if (!$user) {
             \redirect('/admin/users/login');
+            exit;
         }
 
-        return $this->render('admin/home', [
+        return $this->render('admin/users/profile', [
             'user' => $user,
+            'page_title' => 'Mi perfil',
+            'page_subtitle' => 'Información general de tu cuenta',
+            'active' => 'profile',
         ], 'adminUserLayout');
     }
 
@@ -28,13 +32,17 @@ class ProfileController extends Controller
 
         if (!$user) {
             \redirect('/admin/users/login');
+            exit;
         }
 
-        return $this->render('admin/users/editUser', [
+        return $this->render('admin/users/profileEdit', [
             'user' => $user,
             'errors' => [],
             'message' => null,
             'old' => [],
+            'page_title' => 'Editar perfil',
+            'page_subtitle' => 'Actualiza tu información',
+            'active' => 'profile',
         ], 'adminUserLayout');
     }
 
@@ -49,6 +57,7 @@ class ProfileController extends Controller
 
         if (!$user) {
             \redirect('/admin/users/login');
+            exit;
         }
 
         $service = new AdminProfileService();
@@ -60,11 +69,14 @@ class ProfileController extends Controller
 
         $freshUser = AdminAuth::user();
 
-        return $this->render('admin/users/editUser', [
+        return $this->render('admin/users/profileEdit', [
             'user' => $freshUser,
             'errors' => $result['errors'] ?? [],
             'message' => $result['message'] ?? null,
             'old' => $_POST,
+            'page_title' => 'Editar perfil',
+            'page_subtitle' => 'Actualiza tu información',
+            'active' => 'profile',
         ], 'adminUserLayout');
     }
 
@@ -74,11 +86,16 @@ class ProfileController extends Controller
 
         if (!$user) {
             \redirect('/admin/users/login');
+            exit;
         }
 
         return $this->render('admin/users/changePassword', [
+            'user' => $user,
             'errors' => [],
             'message' => null,
+            'page_title' => 'Cambiar contraseña',
+            'page_subtitle' => 'Actualiza la contraseña de tu cuenta',
+            'active' => 'profile',
         ], 'adminUserLayout');
     }
 
@@ -93,6 +110,7 @@ class ProfileController extends Controller
 
         if (!$user) {
             \redirect('/admin/users/login');
+            exit;
         }
 
         $service = new AdminProfileService();
@@ -104,9 +122,26 @@ class ProfileController extends Controller
             newPasswordConfirmation: $_POST['new_password_confirmation'] ?? ''
         );
 
+        if (!empty($result['success']) && !empty($result['data']['force_relogin'])) {
+            AdminAuth::logout(
+                ipAddress: $_SERVER['REMOTE_ADDR'] ?? null,
+                userAgent: $_SERVER['HTTP_USER_AGENT'] ?? null
+            );
+
+            return $this->render('admin/users/login', [
+                'errors' => [],
+                'message' => 'Tu contrasena fue actualizada. Inicia sesion nuevamente.',
+                'old' => [],
+            ], null);
+        }
+
         return $this->render('admin/users/changePassword', [
+            'user' => $user,
             'errors' => $result['errors'] ?? [],
             'message' => $result['message'] ?? null,
+            'page_title' => 'Cambiar contraseña',
+            'page_subtitle' => 'Actualiza la contraseña de tu cuenta',
+            'active' => 'profile',
         ], 'adminUserLayout');
     }
 }

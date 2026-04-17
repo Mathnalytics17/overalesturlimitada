@@ -106,41 +106,51 @@ class LeadController extends Controller
         redirect('/admin/leads/show?id=' . $leadId . '&return_to=' . urlencode($returnTo));
     }
 
-    public function take(Request $request)
-    {
-        $leadId = (int) $request->input('lead_id', 0);
-        $currentAdminId = AdminAuth::id();
-        $returnTo = trim((string) $request->input('return_to', '/admin/leads'));
-        $action = trim((string) $request->input('action', 'stay'));
+   public function take(Request $request)
+{
+    $leadId = (int) $request->input('lead_id', 0);
+    $currentAdminId = AdminAuth::id();
+    $returnTo = trim((string) $request->input('return_to', '/admin/leads'));
+    $action = trim((string) $request->input('action', 'stay'));
 
-        if ($leadId > 0 && $currentAdminId) {
-            $this->service->takeLead($leadId, (int) $currentAdminId);
-        }
-
-        if ($action === 'back') {
-            redirect($returnTo !== '' ? $returnTo : '/admin/leads');
-        }
-
-        redirect('/admin/leads/show?id=' . $leadId . '&return_to=' . urlencode($returnTo) . '&focus_note=1');
+    if ($leadId > 0 && $currentAdminId) {
+        $this->service->takeLead($leadId, (int) $currentAdminId);
+        Flash::success('Lead tomado correctamente.');
+    } else {
+        Flash::error('No fue posible tomar el lead.');
     }
 
-    public function release(Request $request)
-    {
-        $leadId = (int) $request->input('lead_id', 0);
-        $currentAdminId = AdminAuth::id();
-        $returnTo = trim((string) $request->input('return_to', '/admin/leads'));
-        $action = trim((string) $request->input('action', 'back'));
-
-        if ($leadId > 0 && $currentAdminId) {
-            $this->service->releaseLead($leadId, (int) $currentAdminId);
-        }
-
-        if ($action === 'stay') {
-            redirect('/admin/leads/show?id=' . $leadId . '&return_to=' . urlencode($returnTo));
-        }
-
+    if ($action === 'back') {
         redirect($returnTo !== '' ? $returnTo : '/admin/leads');
+        exit;
     }
+
+    redirect('/admin/leads/show?id=' . $leadId . '&return_to=' . urlencode($returnTo) . '&focus_note=1');
+    exit;
+}
+
+   public function release(Request $request)
+{
+    $leadId = (int) $request->input('lead_id', 0);
+    $currentAdminId = AdminAuth::id();
+    $returnTo = trim((string) $request->input('return_to', '/admin/leads'));
+    $action = trim((string) $request->input('action', 'back'));
+
+    if ($leadId > 0 && $currentAdminId) {
+        $this->service->releaseLead($leadId, (int) $currentAdminId);
+        Flash::success('Lead liberado correctamente.');
+    } else {
+        Flash::error('No fue posible liberar el lead.');
+    }
+
+    if ($action === 'stay') {
+        redirect('/admin/leads/show?id=' . $leadId . '&return_to=' . urlencode($returnTo));
+        exit;
+    }
+
+    redirect($returnTo !== '' ? $returnTo : '/admin/leads');
+    exit;
+}
 
     public function note(Request $request)
     {

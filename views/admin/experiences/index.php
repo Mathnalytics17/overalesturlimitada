@@ -14,14 +14,14 @@ $counts = $counts ?? [];
 <body>
   <div class="app">
     <main class="main">
-      <header class="topbar">
+      
         <div class="top-left">
           <div class="page-title">
             <h1>Experiencias</h1>
             <p>Moderación de testimonios y relatos de clientes.</p>
           </div>
         </div>
-      </header>
+  
 
       <section class="content">
         <div class="card">

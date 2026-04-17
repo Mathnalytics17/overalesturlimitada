@@ -7,7 +7,7 @@ class Flash
     protected static function ensureSession(): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+            secure_session_start();
         }
     }
 

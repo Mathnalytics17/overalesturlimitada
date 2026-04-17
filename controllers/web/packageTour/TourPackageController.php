@@ -18,7 +18,7 @@ class TourPackageController extends Controller
 {
     public function index()
     {
-        return $this->render('packagesTourist/list', [], 'mainUserLayout');
+        return $this->render('packagesTourist/list', ['title' => 'Paquetes Turisticos'], 'mainUserLayout');
     }
 
 

@@ -100,6 +100,13 @@ if ($account->status !== 'active' || $verifiedAt === null || $verifiedAt === '')
             return false;
         }
 
+        $idleTimeoutMinutes = max(1, env_int('CUSTOMER_SESSION_IDLE_MINUTES', 120));
+        if ($dbSession->isIdleExpired($idleTimeoutMinutes)) {
+            $dbSession->revoke();
+            self::logout();
+            return false;
+        }
+
         $dbSession->touchActivity();
 
         return true;
@@ -153,6 +160,22 @@ if ($account->status !== 'active' || $verifiedAt === null || $verifiedAt === '')
 
         unset($_SESSION[self::SESSION_USER_KEY], $_SESSION[self::SESSION_TOKEN_KEY]);
 
+        $_SESSION = [];
+
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', [
+                'expires' => time() - 42000,
+                'path' => $params['path'] ?: '/',
+                'domain' => $params['domain'] ?: '',
+                'secure' => (bool) ($params['secure'] ?? false),
+                'httponly' => (bool) ($params['httponly'] ?? true),
+                'samesite' => $params['samesite'] ?? 'Lax',
+            ]);
+        }
+
+        session_destroy();
+        secure_session_start();
         session_regenerate_id(true);
     }
 

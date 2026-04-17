@@ -69,7 +69,7 @@ class AdminExperienceController extends Controller
 
     $this->service->approve($id, $admin?->id ? (int)$admin->id : null);
     Flash::success('La experiencia fue aprobada correctamente.');
-    \redirect('/admin/experiences');
+\redirect('/admin/experiences');
 return;
 }
 

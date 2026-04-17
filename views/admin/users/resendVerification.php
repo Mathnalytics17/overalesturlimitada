@@ -43,6 +43,10 @@ function admin_resend_error(array $errors, string $field): ?string
             <?php endif; ?>
           </div>
 
+          <div style="margin-bottom:12px;">
+            <?= turnstile_widget_html(); ?>
+          </div>
+
           <button type="submit" class="btn primary">Reenviar enlace</button>
         </form>
       </div>

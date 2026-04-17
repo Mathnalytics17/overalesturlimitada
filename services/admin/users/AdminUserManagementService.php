@@ -110,8 +110,7 @@ class AdminUserManagementService
                 ttlHours: 24
             );
 
-            $appUrl = 'http://localhost:8001';
-            $verificationUrl = $appUrl . '/admin/users/confirmUser?token=' . urlencode($plainVerificationToken);
+            $verificationUrl = app_url('/admin/users/confirmUser?token=' . urlencode($plainVerificationToken));
 
             $mailService = new AdminMailService();
 
@@ -129,8 +128,6 @@ class AdminUserManagementService
                 'errors' => [],
                 'old' => [],
                 'user' => $user,
-                'verification_url' => $verificationUrl,
-                'generated_password' => $plainPassword,
                 'mail_result' => $mailResult,
             ];
         } catch (\Throwable $e) {
@@ -140,8 +137,6 @@ class AdminUserManagementService
                 'errors' => [],
                 'old' => [],
                 'user' => $user,
-                'verification_url' => null,
-                'generated_password' => $plainPassword,
             ];
         }
     }

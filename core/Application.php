@@ -3,9 +3,7 @@
 namespace app\Core;
 
 use Throwable;
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
+
 class Application
 {
     public static string $ROOT_DIR;

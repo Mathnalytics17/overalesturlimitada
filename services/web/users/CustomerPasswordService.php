@@ -2,6 +2,7 @@
 
 namespace app\Services\Web\Users;
 
+use app\Core\CustomerAuth;
 use app\Models\CustomerAccount;
 use app\Models\CustomerPasswordReset;
 use app\Services\Mail\CustomerMailService;
@@ -48,8 +49,7 @@ class CustomerPasswordService
                 ttlMinutes: 30
             );
 
-            $appUrl = 'http://localhost:8001';
-            $resetUrl = $appUrl . '/users/resetPassword?token=' . urlencode($plainToken);
+            $resetUrl = app_url('/users/resetPassword?token=' . urlencode($plainToken));
 
             $mailService = new CustomerMailService();
             $mailService->sendResetPasswordEmail(
@@ -57,6 +57,11 @@ class CustomerPasswordService
                 name: 'Usuario',
                 resetUrl: $resetUrl
             );
+
+            security_event('customer_password_reset_requested', [
+                'email' => $email,
+                'account_id' => (int) $account->id,
+            ]);
         }
 
         return [
@@ -164,6 +169,11 @@ class CustomerPasswordService
         }
 
         $reset->markAsUsed();
+        CustomerAuth::logoutAllDevices((int) $account->id);
+        security_event('customer_password_reset_completed', [
+            'account_id' => (int) $account->id,
+            'email' => (string) ($account->email ?? ''),
+        ]);
 
         return [
             'success' => true,

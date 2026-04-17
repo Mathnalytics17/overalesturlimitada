@@ -1,3 +1,9 @@
+<?php
+$currentAdmin = \app\Core\AdminAuth::user();
+$user_name = $currentAdmin->full_name ?? $currentAdmin->first_name ?? 'Usuario';
+$user_role = $currentAdmin->role ?? 'Administrador';
+?>
+
 <aside class="sidebar">
   <div class="brand">
     <div class="logo">OA</div>
@@ -70,24 +76,38 @@
     <div class="top-right">
       
 
-      <div class="dropdown">
-        <div class="userchip" id="userChip">
-          <div class="avatar">
-            <?= strtoupper(substr($user_name ?? 'U', 0, 1)); ?><?= strtoupper(substr($user_role ?? 'A', 0, 1)); ?>
-          </div>
+    <div class="dropdown">
+  <div class="userchip" id="userChip">
+    <div class="avatar">
+      <?= strtoupper(substr($user_name, 0, 1)); ?><?= strtoupper(substr($user_role, 0, 1)); ?>
+    </div>
 
-          <div class="user-meta">
-            <div class="name"><?= htmlspecialchars($user_name ?? '') ?></div>
-            <div class="role"><?= htmlspecialchars($user_role ?? '') ?></div>
-          </div>
-        </div>
+    <div class="user-meta">
+      <div class="name"><?= htmlspecialchars($user_name) ?></div>
+      <div class="role"><?= htmlspecialchars($user_role) ?></div>
+    </div>
+  </div>
 
-        <div class="menu" id="userMenu">
-          <a href="#"><i data-lucide="user"></i><span>Ver perfil</span></a>
-          <a href="#"><i data-lucide="square-pen"></i><span>Editar perfil</span></a>
-          <a class="danger" href="#"><i data-lucide="log-out"></i><span>Cerrar sesión</span></a>
-        </div>
-      </div>
+  <div class="menu" id="userMenu">
+    <a href="/admin/profile">
+      <i data-lucide="user"></i>
+      <span>Ver perfil</span>
+    </a>
+
+    <a href="/admin/users/editUser">
+      <i data-lucide="square-pen"></i>
+      <span>Editar perfil</span>
+    </a>
+
+    <form method="POST" action="/admin/users/logout" class="menu-logout-form">
+      <?= \app\Core\Csrf::input(); ?>
+      <button type="submit" class="menu-logout-btn danger">
+        <i data-lucide="log-out"></i>
+        <span>Cerrar sesión</span>
+      </button>
+    </form>
+  </div>
+</div>
     </div>
   </header>
 

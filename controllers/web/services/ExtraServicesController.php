@@ -18,7 +18,7 @@ class ExtraServicesController extends Controller
     }
 
 
-    public function index() { $services = ExtraService::getActivos(); return $this->render('extraServices/index', [ 'titulo' => 'Servicios Extras', 'services' => $services, ]); }
+    public function index() { $services = ExtraService::getActivos(); return $this->render('extraServices/index', [ 'title' => 'Servicios Extras', 'services' => $services, ]); }
     public function show(Request $request)
     {
         $body = $request->getBody();
@@ -28,6 +28,7 @@ class ExtraServicesController extends Controller
 
         if (!$service) {
             return $this->render('extraServices/show', [
+                
                 'service' => null,
                 'errors' => [],
                 'old' => [],
@@ -40,6 +41,7 @@ class ExtraServicesController extends Controller
         }
 
         return $this->render('extraServices/show', [
+          
             'service' => $service,
             'errors' => [],
             'old' => [],

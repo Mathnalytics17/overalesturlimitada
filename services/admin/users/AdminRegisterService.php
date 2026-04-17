@@ -93,8 +93,7 @@ class AdminRegisterService
             ttlHours: 24
         );
 
-        $appUrl = 'http://localhost:8001';
-        $verificationUrl = $appUrl . '/admin/users/confirmUser?token=' . urlencode($plainVerificationToken);
+        $verificationUrl = app_url('/admin/users/confirmUser?token=' . urlencode($plainVerificationToken));
 
         $mailService = new AdminMailService();
         $mailResult = $mailService->sendVerificationEmail(
@@ -110,7 +109,6 @@ class AdminRegisterService
                 : 'Cuenta admin creada correctamente, pero no fue posible enviar el correo de verificación.',
             'data' => [
                 'user' => $user->toArray(),
-                'verification_url' => $verificationUrl,
                 'mail_result' => $mailResult,
             ],
             'errors' => [],

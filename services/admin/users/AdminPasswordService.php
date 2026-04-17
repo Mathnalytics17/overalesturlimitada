@@ -49,8 +49,7 @@ class AdminPasswordService
                 ttlMinutes: 30
             );
 
-            $appUrl = 'http://localhost:8001';
-            $resetUrl = $appUrl . '/admin/users/resetPassword?token=' . urlencode($plainToken);
+            $resetUrl = app_url('/admin/users/resetPassword?token=' . urlencode($plainToken));
 
             $mailService = new AdminMailService();
             $mailService->sendResetPasswordEmail(
@@ -58,6 +57,11 @@ class AdminPasswordService
                 name: $user->full_name ?? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: 'Administrador',
                 resetUrl: $resetUrl
             );
+
+            security_event('admin_password_reset_requested', [
+                'email' => $email,
+                'admin_user_id' => (int) $user->id,
+            ]);
         }
 
         return [
@@ -166,6 +170,10 @@ class AdminPasswordService
 
         $reset->markAsUsed();
         AdminSession::revokeAllByUser((int) $user->id);
+        security_event('admin_password_reset_completed', [
+            'admin_user_id' => (int) $user->id,
+            'email' => (string) ($user->email ?? ''),
+        ]);
 
         return [
             'success' => true,

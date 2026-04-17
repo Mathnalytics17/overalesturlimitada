@@ -84,4 +84,18 @@ class CustomerSession extends Model
                 'revoked_at' => date('Y-m-d H:i:s'),
             ]);
     }
+
+    public function isIdleExpired(int $idleMinutes): bool
+    {
+        if ($idleMinutes <= 0 || empty($this->last_activity_at)) {
+            return false;
+        }
+
+        $lastActivityTimestamp = strtotime((string) $this->last_activity_at);
+        if ($lastActivityTimestamp === false) {
+            return false;
+        }
+
+        return $lastActivityTimestamp < strtotime("-{$idleMinutes} minutes");
+    }
 }

@@ -4,8 +4,8 @@ namespace app\Controllers\web\users;
 
 use app\Core\Controller;
 use app\Core\Csrf;
+use app\Core\RateLimiter;
 use app\Services\Web\Users\CustomerEmailVerificationService;
-use app\Core\Flash;
 
 class EmailVerificationController extends Controller
 {
@@ -30,8 +30,38 @@ class EmailVerificationController extends Controller
             exit('CSRF inválido');
         }
 
+        $ipAddress = client_ip();
+        $email = trim(mb_strtolower((string) ($_POST['email'] ?? '')));
+        $rateLimitKey = rate_limit_key('customer_verification_resend', $ipAddress, $email);
+
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 3, 1800)) {
+            return $this->render('users/resendVerification', [
+                'errors' => [
+                    'email' => ['Demasiadas solicitudes. Espera unos minutos antes de reenviar otro enlace.'],
+                ],
+                'message' => 'Demasiadas solicitudes de verificacion.',
+                'old' => [
+                    'email' => $_POST['email'] ?? '',
+                ],
+            ]);
+        }
+
+        $turnstile = validate_turnstile($_POST['cf-turnstile-response'] ?? null, $ipAddress);
+        if (!$turnstile['success']) {
+            return $this->render('users/resendVerification', [
+                'errors' => [
+                    'email' => [$turnstile['message'] ?? 'Debes completar la verificacion de seguridad.'],
+                ],
+                'message' => $turnstile['message'] ?? null,
+                'old' => [
+                    'email' => $_POST['email'] ?? '',
+                ],
+            ]);
+        }
+
         $service = new CustomerEmailVerificationService();
-        $result = $service->resend($_POST['email'] ?? '');
+        $result = $service->resend($email);
+        RateLimiter::hit($rateLimitKey, 1800);
 
         return $this->render('users/resendVerification', [
             'errors' => $result['errors'] ?? [],
@@ -39,7 +69,6 @@ class EmailVerificationController extends Controller
             'old' => [
                 'email' => $_POST['email'] ?? '',
             ],
-            'debug_verification_url' => $result['data']['verification_url'] ?? null,
         ]);
     }
 

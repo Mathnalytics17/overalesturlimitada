@@ -51,6 +51,10 @@ class AdminEmailVerificationService
 
         $verification->markAsVerified();
         $user->markEmailVerified();
+        security_event('admin_email_verified', [
+            'admin_user_id' => (int) $user->id,
+            'email' => (string) ($user->email ?? ''),
+        ]);
 
         return [
             'success' => true,
@@ -106,8 +110,7 @@ class AdminEmailVerificationService
             ttlHours: 24
         );
 
-        $appUrl = 'http://localhost:8001';
-        $verificationUrl = $appUrl . '/admin/users/confirmUser?token=' . urlencode($plainToken);
+        $verificationUrl = app_url('/admin/users/confirmUser?token=' . urlencode($plainToken));
 
         $mailService = new AdminMailService();
         $mailResult = $mailService->sendVerificationEmail(
@@ -115,6 +118,10 @@ class AdminEmailVerificationService
             name: $user->full_name ?? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: 'Administrador',
             verificationUrl: $verificationUrl
         );
+        security_event('admin_verification_resent', [
+            'admin_user_id' => (int) $user->id,
+            'email' => (string) ($user->email ?? ''),
+        ]);
 
         return [
             'success' => true,

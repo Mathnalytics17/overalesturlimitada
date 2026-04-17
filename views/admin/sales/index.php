@@ -233,14 +233,14 @@ function sales_temperature_label(string $temp): string
 
 <div class="app">
   <main class="main">
-    <header class="topbar">
+    
       <div class="top-left">
         <div class="page-title">
           <h1>Seguimiento de ventas</h1>
           <p>Gestiona oportunidades comerciales, seguimiento y cierre.</p>
         </div>
       </div>
-    </header>
+    
 
     <a href="/admin/sales/create" class="btn-main">Nueva oportunidad</a>
 

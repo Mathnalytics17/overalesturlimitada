@@ -65,7 +65,7 @@ function alert_priority_class(string $priority): string
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard</title>
-  <link rel="stylesheet" href="/public/styles/admin.css">
+  <link rel="stylesheet" href="/styles/admin.css">
   <style>
     .dashboard-page {
       display:flex;
@@ -354,14 +354,14 @@ function alert_priority_class(string $priority): string
 <body>
   <div class="app">
     <main class="main">
-      <header class="topbar">
+    
         <div class="top-left">
           <div class="page-title">
             <h1>Dashboard</h1>
             <p>Resumen general comercial, operativo y financiero.</p>
           </div>
         </div>
-      </header>
+      
 
       <section class="content dashboard-page">
 

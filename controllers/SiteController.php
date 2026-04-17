@@ -23,8 +23,9 @@ foreach ($experiences as $exp) {
 }
     return $this->render('home', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css',
+        'pageCss' => '/styles/home.css',
         'experiences' =>  $experiences ,
+        'title' => 'Inicio'
     ], 'mainUserLayout');
     }
 
@@ -35,7 +36,8 @@ foreach ($experiences as $exp) {
 
    public function contact(){
     return $this->render('contact', [
-        'pageCss' => '/public/styles/contact.css'
+        'pageCss' => '/styles/contact.css',
+        'title' => 'Contacto'
     ], 'mainUserLayout');
 }
 
@@ -48,7 +50,7 @@ foreach ($experiences as $exp) {
 
         if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || $phone === '') {
             return $this->render('contact', [
-                'pageCss' => '/public/styles/contact.css',
+                'pageCss' => '/styles/contact.css',
                 'message' => 'Completa nombre, correo y teléfono con datos válidos.',
                 'messageType' => 'error',
             ], 'mainUserLayout');
@@ -56,7 +58,7 @@ foreach ($experiences as $exp) {
 
         if (empty($payload['acepta'])) {
             return $this->render('contact', [
-                'pageCss' => '/public/styles/contact.css',
+                'pageCss' => '/styles/contact.css',
                 'message' => 'Debes aceptar la política de tratamiento de datos.',
                 'messageType' => 'error',
             ], 'mainUserLayout');
@@ -70,7 +72,7 @@ foreach ($experiences as $exp) {
         }
 
         return $this->render('contact', [
-            'pageCss' => '/public/styles/contact.css',
+            'pageCss' => '/styles/contact.css',
             'message' => 'Tu solicitud fue recibida correctamente. Te responderemos pronto.',
             'messageType' => 'success',
         ], 'mainUserLayout');
@@ -83,7 +85,8 @@ foreach ($experiences as $exp) {
     public function tickets(){
     return $this->render('tickets', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css',
+        'title' => 'Tiquetes'
     ], 'mainUserLayout');
     }
 
@@ -91,14 +94,16 @@ foreach ($experiences as $exp) {
     public function packageTourist(){
     return $this->render('packagesTourist/list', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css',
+        'title' => 'Paquetes turísticos'
+        
     ], 'mainUserLayout');
     }
 
     public function packageTouristDetail(){
     return $this->render('packageTourist/package', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'mainUserLayout');
     }
 
@@ -109,7 +114,8 @@ foreach ($experiences as $exp) {
     public function about(){
         return $this->render('about', [
             'name' => 'Usuario',
-            'pageCss' => '/public/styles/home.css'
+            'pageCss' => '/styles/home.css',
+            'title' => 'Sobre Nosotros'
         ], 'mainUserLayout');
         }
 
@@ -118,7 +124,8 @@ foreach ($experiences as $exp) {
     public function pqrs(){
         return $this->render('pqrs', [
             'name' => 'Usuario',
-            'pageCss' => '/public/styles/pqrs.css'
+            'pageCss' => '/styles/pqrs.css',
+            'title' => 'PQRS'
         ], 'mainUserLayout');
         }
 
@@ -134,7 +141,7 @@ foreach ($experiences as $exp) {
         if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || $type === '' || $subject === '' || $message === '') {
             return $this->render('pqrs', [
                 'name' => 'Usuario',
-                'pageCss' => '/public/styles/pqrs.css',
+                'pageCss' => '/styles/pqrs.css',
                 'message' => 'Completa todos los campos obligatorios de la PQRS.',
                 'messageType' => 'error',
             ], 'mainUserLayout');
@@ -143,7 +150,7 @@ foreach ($experiences as $exp) {
         if (empty($payload['acepta'])) {
             return $this->render('pqrs', [
                 'name' => 'Usuario',
-                'pageCss' => '/public/styles/pqrs.css',
+                'pageCss' => '/styles/pqrs.css',
                 'message' => 'Debes aceptar la política de tratamiento de datos.',
                 'messageType' => 'error',
             ], 'mainUserLayout');
@@ -158,7 +165,7 @@ foreach ($experiences as $exp) {
 
         return $this->render('pqrs', [
             'name' => 'Usuario',
-            'pageCss' => '/public/styles/pqrs.css',
+            'pageCss' => '/styles/pqrs.css',
             'message' => 'Tu solicitud PQRS fue recibida correctamente.',
             'messageType' => 'success',
         ], 'mainUserLayout');
@@ -172,43 +179,43 @@ foreach ($experiences as $exp) {
         public function UserLogin(){
     return $this->render('users/login', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'mainUserLayout');
     }
      public function UserRegister(){
     return $this->render('users/register', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'mainUserLayout');
     }
      public function UserConfirmPassword(){
     return $this->render('users/confirmPassword', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'mainUserLayout');
     }
      public function UserResetPassword(){
     return $this->render('users/newPassword', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'mainUserLayout');
     }
      public function UserConfirm(){
     return $this->render('users/confirmAccount', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'mainUserLayout');
     }
      public function UserForgotPassword(){
     return $this->render('users/forgotPassword', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'mainUserLayout');
     }
      public function UserEdit(){
     return $this->render('users/editUser', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'mainUserLayout');
     }
 
@@ -231,7 +238,7 @@ foreach ($experiences as $exp) {
     public function UserList(){
     return $this->render('users/userList', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'mainUserLayout');
     }
 
@@ -240,7 +247,7 @@ foreach ($experiences as $exp) {
      public function admin(){
     return $this->render('admin/home', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'adminUserLayout');
     }
 
@@ -251,7 +258,7 @@ foreach ($experiences as $exp) {
     public function adminLeads(){
     return $this->render('admin/leads', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'adminUserLayout');
     }
 
@@ -266,43 +273,43 @@ foreach ($experiences as $exp) {
      public function adminUserLogin(){
     return $this->render('admin/users/login', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'adminUserLayout');
     }
      public function adminUserRegister(){
     return $this->render('admin/users/register', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'adminUserLayout');
     }
      public function adminUserConfirmPassword(){
     return $this->render('admin/users/confirmPassword', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'adminUserLayout');
     }
      public function adminUserResetPassword(){
     return $this->render('admin/users/newPassword', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'adminUserLayout');
     }
      public function adminUserConfirm(){
     return $this->render('admin/users/confirmAccount', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'adminUserLayout');
     }
      public function adminUserForgotPassword(){
     return $this->render('admin/users/forgotPassword', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'adminUserLayout');
     }
      public function adminUserEdit(){
     return $this->render('admin/users/editUser', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'adminUserLayout');
     }
 
@@ -310,14 +317,14 @@ foreach ($experiences as $exp) {
     public function adminUserShow(){
     return $this->render('admin/users/user', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'adminUserLayout');
     }
 
     public function adminUserList(){
     return $this->render('admin/users/userList', [
         'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
+        'pageCss' => '/styles/home.css'
     ], 'adminUserLayout');
     }
 
@@ -335,17 +342,5 @@ foreach ($experiences as $exp) {
 
 
 
-    public function extraServices(){
-    return $this->render('/extraServices/extraServicesInfo', [
-        'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
-    ], 'mainUserLayout');
-    }
 
-    public function extraServiceDetails(){
-    return $this->render('/extraServices/extraServiceDescription', [    
-        'name' => 'Usuario',
-        'pageCss' => '/public/styles/home.css'
-    ], 'mainUserLayout');
-    }
 }

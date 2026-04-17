@@ -124,8 +124,7 @@ class CustomerRegisterService
             ttlHours: 24
         );
 
-        $appUrl = rtrim(\env('APP_URL', 'http://localhost:8001'), '/');
-        $verificationUrl = $appUrl . '/users/confirmUser?token=' . urlencode($plainVerificationToken);
+        $verificationUrl = app_url('/users/confirmUser?token=' . urlencode($plainVerificationToken));
 
         $mailService = new CustomerMailService();
         $mailResult = $mailService->sendVerificationEmail(
@@ -142,8 +141,6 @@ class CustomerRegisterService
             'data' => [
                 'customer' => $customer->toArray(),
                 'account' => $account->toArray(),
-                'verification_token' => $plainVerificationToken,
-                'verification_url' => $verificationUrl,
                 'mail_result' => $mailResult,
             ],
             'errors' => [],

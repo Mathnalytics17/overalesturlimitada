@@ -57,6 +57,19 @@ class ProfileController extends Controller
             newPasswordConfirmation: $_POST['new_password_confirmation'] ?? ''
         );
 
+        if (!empty($result['success']) && !empty($result['data']['force_relogin'])) {
+            CustomerAuth::logout(
+                ipAddress: $_SERVER['REMOTE_ADDR'] ?? null,
+                userAgent: $_SERVER['HTTP_USER_AGENT'] ?? null
+            );
+
+            return $this->render('users/login', [
+                'errors' => [],
+                'message' => 'Tu contrasena fue actualizada. Inicia sesion nuevamente.',
+                'old' => [],
+            ]);
+        }
+
         return $this->render('users/changePassword', [
             'errors' => $result['errors'] ?? [],
             'message' => $result['message'] ?? null,

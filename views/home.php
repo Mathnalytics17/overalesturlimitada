@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inicio | Alestur</title>
-    <link rel="stylesheet" href="/public/styles/home.css">
+    <link rel="stylesheet" href="/styles/home.css">
 </head>
 <body>
 
@@ -13,7 +13,7 @@
     <section class="hero-home">
         <div class="hero-overlay"></div>
 
-        <img class="hero-bg" src="/public/img/home/image (28).png" alt="Experiencias de viaje Alestur">
+        <img class="hero-bg" src="/img/home/image (28).png" alt="Experiencias de viaje Alestur">
 
         <div class="hero-content">
             <div class="hero-text">
@@ -38,7 +38,7 @@
             </div>
 
             <div class="hero-card">
-                <img class="hero-logo" src="/public/img/home/logo.png" alt="Logo Alestur">
+                <img class="hero-logo" src="/img/home/logo.png" alt="Logo Alestur">
                 <div class="hero-card-info">
                     <h3>Expertos en viajes</h3>
                     <p>

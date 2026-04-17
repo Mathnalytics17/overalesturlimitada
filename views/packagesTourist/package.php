@@ -236,6 +236,10 @@ $coverPath = package_asset_url($cover->image_path ?? null);
     <label for="aceptaWa">Acepto el tratamiento de datos personales y deseo continuar por WhatsApp.</label>
   </div>
 
+  <div style="grid-column:1/-1; margin:8px 0;">
+    <?= turnstile_widget_html(); ?>
+  </div>
+
   <div style="grid-column:1/-1;">
     <button type="submit" style="background:#16a34a;color:#fff;padding:12px 18px;border:none;border-radius:10px;font-weight:800;cursor:pointer;">
       Registrar y abrir WhatsApp
