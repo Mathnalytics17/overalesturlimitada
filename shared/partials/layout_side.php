@@ -7,6 +7,9 @@ $user_role = $currentAdmin->role ?? 'Administrador';
 <aside class="sidebar">
   <div class="brand">
     <div class="logo">OA</div>
+    <button type="button" class="mobile-nav-close" id="closeSidebar" aria-label="Cerrar menu">
+      <span aria-hidden="true">&times;</span>
+    </button>
     <div class="brand-text">
       <div class="brand-title">Over Alestur</div>
       <div class="brand-sub">Admin Panel</div>
@@ -59,6 +62,7 @@ $user_role = $currentAdmin->role ?? 'Administrador';
     </div>
   </div>
 </aside>
+<button type="button" class="sidebar-scrim" id="sidebarScrim" aria-label="Cerrar menu lateral"></button>
 
 <main class="main">
   <header class="topbar">

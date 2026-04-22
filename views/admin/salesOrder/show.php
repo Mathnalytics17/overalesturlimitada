@@ -32,7 +32,7 @@ function order_badge_class(string $status): string
   <style>
     .order-show {
       display:grid;
-      grid-template-columns: 1fr 380px;
+      grid-template-columns:minmax(0, 1fr) 360px;
       gap:20px;
     }
 
@@ -87,6 +87,13 @@ function order_badge_class(string $status): string
     .badge.blue { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
     .badge.red { background:#fef2f2; color:#b91c1c; border-color:#fecaca; }
     .badge.gray { background:#f3f4f6; color:#4b5563; border-color:#d1d5db; }
+
+    .hero-badges,
+    .order-actions {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
 
     .info-grid {
       display:grid;
@@ -199,6 +206,15 @@ function order_badge_class(string $status): string
     .btn-main { background:#0ea5e9; color:#fff; }
     .btn-outline { background:#fff; color:#4c1d95; border:1px solid #d1d5db; }
 
+    .order-main-actions {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+
     @media (max-width: 1100px) {
       .order-show {
         grid-template-columns: 1fr;
@@ -209,212 +225,223 @@ function order_badge_class(string $status): string
       .info-grid {
         grid-template-columns: 1fr;
       }
+
+      .hero-title {
+        font-size:26px;
+      }
+
+      .order-main-actions > *,
+      .order-actions > * {
+        width:100%;
+      }
     }
   </style>
 </head>
 <body>
   <div class="app">
     <main class="main">
-      <header class="topbar">
-        <div class="top-left">
-          <div class="page-title">
-            <h1>Detalle de venta / reserva</h1>
-            <p>Control comercial y operativo de la venta cerrada.</p>
+      <section class="content">
+        <div class="order-main-actions">
+          <div class="top-left">
+            <div class="page-title">
+              <h1>Detalle de venta / reserva</h1>
+              <p>Control comercial y operativo de la venta cerrada.</p>
+            </div>
           </div>
+
+          <a href="/admin/sales-orders" class="btn-outline" style="width:auto;text-decoration:none;">
+            Volver al listado
+          </a>
         </div>
-      </header>
 
-      <section class="content order-show">
-        <div class="stack">
-          <div class="panel-card">
-            <div class="hero-head">
-              <div>
-                <h2 class="hero-title"><?= htmlspecialchars($item->order_number ?? '') ?></h2>
-                <div class="hero-sub">
-                  <?= htmlspecialchars($item->customer_name ?? '') ?><br>
-                  <?= htmlspecialchars($item->customer_phone ?? '') ?><br>
-                  <?= htmlspecialchars($item->customer_email ?? '') ?>
+        <section class="order-show">
+          <div class="stack">
+            <div class="panel-card">
+              <div class="hero-head">
+                <div>
+                  <h2 class="hero-title"><?= htmlspecialchars($item->order_number ?? '') ?></h2>
+                  <div class="hero-sub">
+                    <?= htmlspecialchars($item->customer_name ?? '') ?><br>
+                    <?= htmlspecialchars($item->customer_phone ?? '') ?><br>
+                    <?= htmlspecialchars($item->customer_email ?? '') ?>
+                  </div>
+                </div>
+
+                <div class="hero-badges">
+                  <span class="<?= order_badge_class((string)($item->commercial_status ?? 'open')) ?>">
+                    <?= htmlspecialchars($item->commercial_status ?? 'open') ?>
+                  </span>
+                  <span class="<?= order_badge_class((string)($item->operational_status ?? 'pending_documents')) ?>">
+                    <?= htmlspecialchars($item->operational_status ?? 'pending_documents') ?>
+                  </span>
                 </div>
               </div>
 
-              <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <span class="<?= order_badge_class((string)($item->commercial_status ?? 'open')) ?>">
-                  <?= htmlspecialchars($item->commercial_status ?? 'open') ?>
-                </span>
-                <span class="<?= order_badge_class((string)($item->operational_status ?? 'pending_documents')) ?>">
-                  <?= htmlspecialchars($item->operational_status ?? 'pending_documents') ?>
-                </span>
-              </div>
-            </div>
-
-            <div class="info-grid">
-              <div class="info-item">
-                <div class="label">Producto</div>
-                <div class="value">
-                  <?= htmlspecialchars($item->product_type ?? 'other') ?><br>
-                  <?= htmlspecialchars($item->package_slug ?? $item->extra_service_slug ?? 'Sin referencia') ?>
+              <div class="info-grid">
+                <div class="info-item">
+                  <div class="label">Producto</div>
+                  <div class="value">
+                    <?= htmlspecialchars($item->product_type ?? 'other') ?><br>
+                    <?= htmlspecialchars($item->package_slug ?? $item->extra_service_slug ?? 'Sin referencia') ?>
+                  </div>
                 </div>
-              </div>
 
-              <div class="info-item">
-                <div class="label">Monto total</div>
-                <div class="value">
-                  <?= number_format((float)($item->total_amount ?? 0), 0, ',', '.') ?>
-                  <?= htmlspecialchars($item->currency ?? 'COP') ?>
+                <div class="info-item">
+                  <div class="label">Monto total</div>
+                  <div class="value">
+                    <?= number_format((float)($item->total_amount ?? 0), 0, ',', '.') ?>
+                    <?= htmlspecialchars($item->currency ?? 'COP') ?>
+                  </div>
                 </div>
-              </div>
 
-              <div class="info-item">
-                <div class="label">Pagado</div>
-                <div class="value">
-                  <?= number_format((float)($item->paid_amount ?? 0), 0, ',', '.') ?>
-                  <?= htmlspecialchars($item->currency ?? 'COP') ?>
+                <div class="info-item">
+                  <div class="label">Pagado</div>
+                  <div class="value">
+                    <?= number_format((float)($item->paid_amount ?? 0), 0, ',', '.') ?>
+                    <?= htmlspecialchars($item->currency ?? 'COP') ?>
+                  </div>
                 </div>
-              </div>
 
-              <div class="info-item">
-                <div class="label">Saldo</div>
-                <div class="value">
-                  <?= number_format((float)($item->balance_amount ?? 0), 0, ',', '.') ?>
-                  <?= htmlspecialchars($item->currency ?? 'COP') ?>
+                <div class="info-item">
+                  <div class="label">Saldo</div>
+                  <div class="value">
+                    <?= number_format((float)($item->balance_amount ?? 0), 0, ',', '.') ?>
+                    <?= htmlspecialchars($item->currency ?? 'COP') ?>
+                  </div>
                 </div>
-              </div>
 
-              <div class="info-item">
-                <div class="label">Viajeros</div>
-                <div class="value">
-                  <?= htmlspecialchars((string)($item->travelers_count ?? 'Sin dato')) ?>
+                <div class="info-item">
+                  <div class="label">Viajeros</div>
+                  <div class="value">
+                    <?= htmlspecialchars((string)($item->travelers_count ?? 'Sin dato')) ?>
+                  </div>
                 </div>
-              </div>
 
-              <div class="info-item">
-                <div class="label">Fechas estimadas</div>
-                <div class="value">
-                  Ida: <?= htmlspecialchars($item->travel_date_estimate ?? 'Sin fecha') ?><br>
-                  Regreso: <?= htmlspecialchars($item->return_date_estimate ?? 'Sin fecha') ?>
+                <div class="info-item">
+                  <div class="label">Fechas estimadas</div>
+                  <div class="value">
+                    Ida: <?= htmlspecialchars($item->travel_date_estimate ?? 'Sin fecha') ?><br>
+                    Regreso: <?= htmlspecialchars($item->return_date_estimate ?? 'Sin fecha') ?>
+                  </div>
                 </div>
-              </div>
 
-              <div class="info-item">
-                <div class="label">Asesor</div>
-                <div class="value">
-                  <?= !empty($item->assigned_admin_user_id) ? 'Asesor #' . (int)$item->assigned_admin_user_id : 'Sin asignar' ?>
+                <div class="info-item">
+                  <div class="label">Asesor</div>
+                  <div class="value">
+                    <?= !empty($item->assigned_admin_user_id) ? 'Asesor #' . (int)$item->assigned_admin_user_id : 'Sin asignar' ?>
+                  </div>
                 </div>
-              </div>
 
-              <div class="info-item">
-                <div class="label">Oportunidad origen</div>
-                <div class="value">
-                  <?php if ($opportunity): ?>
-                    <a href="/admin/sales/show?id=<?= (int)$opportunity->id ?>" style="color:#2563eb;text-decoration:none;font-weight:900;">
-                      Ver oportunidad #<?= (int)$opportunity->id ?>
-                    </a>
-                  <?php else: ?>
-                    Sin vínculo
-                  <?php endif; ?>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel-card">
-            <h3>Pagos vinculados</h3>
-
-            <?php if (empty($payments)): ?>
-              <div style="color:#64748b;">No hay pagos vinculados todavía.</div>
-            <?php else: ?>
-              <div class="timeline">
-                <?php foreach ($payments as $payment): ?>
-                  <div class="timeline-item">
-                    <div class="timeline-title">
-                      <?= htmlspecialchars($payment->payment_kind ?? 'payment') ?> ·
-                      <?= number_format((float)($payment->amount ?? 0), 0, ',', '.') ?>
-                      <?= htmlspecialchars($payment->currency ?? 'COP') ?>
-                    </div>
-                    <div class="timeline-meta">
-                      Estado: <?= htmlspecialchars($payment->status ?? '') ?> ·
-                      Método: <?= htmlspecialchars($payment->payment_method ?? '') ?><br>
-                      Referencia: <?= htmlspecialchars($payment->payment_reference ?? 'Sin referencia') ?><br>
-                      Reportado: <?= htmlspecialchars($payment->reported_at ?? '') ?>
-                    </div>
-                    <?php if (!empty($payment->notes)): ?>
-                      <div class="timeline-body"><?= nl2br(htmlspecialchars($payment->notes)) ?></div>
+                <div class="info-item">
+                  <div class="label">Oportunidad origen</div>
+                  <div class="value">
+                    <?php if ($opportunity): ?>
+                      <a href="/admin/sales/show?id=<?= (int)$opportunity->id ?>" style="color:#2563eb;text-decoration:none;font-weight:900;">
+                        Ver oportunidad #<?= (int)$opportunity->id ?>
+                      </a>
+                    <?php else: ?>
+                      Sin vÃ­nculo
                     <?php endif; ?>
                   </div>
-                <?php endforeach; ?>
+                </div>
               </div>
-            <?php endif; ?>
-          </div>
+            </div>
 
-          <div class="panel-card">
-            <h3>Historial comercial vinculado</h3>
+            <div class="panel-card">
+              <h3>Pagos vinculados</h3>
 
-            <?php if (empty($events)): ?>
-              <div style="color:#64748b;">No hay eventos registrados.</div>
-            <?php else: ?>
-              <div class="timeline">
-                <?php foreach ($events as $event): ?>
-                  <div class="timeline-item">
-                    <div class="timeline-title"><?= htmlspecialchars($event->title ?? '') ?></div>
-                    <div class="timeline-meta">
-                      <?= htmlspecialchars($event->event_type ?? '') ?> · <?= htmlspecialchars($event->created_at ?? '') ?>
+              <?php if (empty($payments)): ?>
+                <div style="color:#64748b;">No hay pagos vinculados todavÃ­a.</div>
+              <?php else: ?>
+                <div class="timeline">
+                  <?php foreach ($payments as $payment): ?>
+                    <div class="timeline-item">
+                      <div class="timeline-title">
+                        <?= htmlspecialchars($payment->payment_kind ?? 'payment') ?> Â·
+                        <?= number_format((float)($payment->amount ?? 0), 0, ',', '.') ?>
+                        <?= htmlspecialchars($payment->currency ?? 'COP') ?>
+                      </div>
+                      <div class="timeline-meta">
+                        Estado: <?= htmlspecialchars($payment->status ?? '') ?> Â·
+                        MÃ©todo: <?= htmlspecialchars($payment->payment_method ?? '') ?><br>
+                        Referencia: <?= htmlspecialchars($payment->payment_reference ?? 'Sin referencia') ?><br>
+                        Reportado: <?= htmlspecialchars($payment->reported_at ?? '') ?>
+                      </div>
+                      <?php if (!empty($payment->notes)): ?>
+                        <div class="timeline-body"><?= nl2br(htmlspecialchars($payment->notes)) ?></div>
+                      <?php endif; ?>
                     </div>
-                    <?php if (!empty($event->message)): ?>
-                      <div class="timeline-body"><?= nl2br(htmlspecialchars($event->message)) ?></div>
-                    <?php endif; ?>
-                  </div>
-                <?php endforeach; ?>
-              </div>
-            <?php endif; ?>
-          </div>
-        </div>
+                  <?php endforeach; ?>
+                </div>
+              <?php endif; ?>
+            </div>
 
-        <div class="stack">
-          <div class="panel-card">
-            <h3>Acciones operativas</h3>
+            <div class="panel-card">
+              <h3>Historial comercial vinculado</h3>
 
-            <div class="stack">
-              <form method="POST" action="/admin/sales-orders/update-operational-status" class="form-block">
-                <?= Csrf::input(); ?>
-                <input type="hidden" name="id" value="<?= (int)$item->id ?>">
-                <input type="hidden" name="return_to" value="show">
-
-                <label for="operational_status">Estado operativo</label>
-                <select id="operational_status" name="operational_status">
-                  <option value="pending_documents" <?= ($item->operational_status ?? '') === 'pending_documents' ? 'selected' : '' ?>>Pendiente documentos</option>
-                  <option value="pending_booking" <?= ($item->operational_status ?? '') === 'pending_booking' ? 'selected' : '' ?>>Pendiente reserva</option>
-                  <option value="booked" <?= ($item->operational_status ?? '') === 'booked' ? 'selected' : '' ?>>Reservado</option>
-                  <option value="delivered" <?= ($item->operational_status ?? '') === 'delivered' ? 'selected' : '' ?>>Entregado</option>
-                  <option value="completed" <?= ($item->operational_status ?? '') === 'completed' ? 'selected' : '' ?>>Completado</option>
-                  <option value="cancelled" <?= ($item->operational_status ?? '') === 'cancelled' ? 'selected' : '' ?>>Cancelado</option>
-                </select>
-
-                <button type="submit" class="btn-main">Actualizar estado</button>
-              </form>
-
-              <form method="POST" action="/admin/sales-orders/update-notes" class="form-block">
-                <?= Csrf::input(); ?>
-                <input type="hidden" name="id" value="<?= (int)$item->id ?>">
-
-                <label for="notes">Notas operativas</label>
-                <textarea id="notes" name="notes"><?= htmlspecialchars($item->notes ?? '') ?></textarea>
-<a
-  href="/experiences/share?order=<?= (int)$item->id ?>"
-  target="_blank"
-  class="btn-outline"
-  style="text-decoration:none;"
->
-  Enlace para pedir experiencia
-</a>
-                <button type="submit" class="btn-outline">Guardar notas</button>
-              </form>
-
-              <a href="/admin/sales-orders" class="btn-outline" style="text-decoration:none;">
-                Volver al listado
-              </a>
+              <?php if (empty($events)): ?>
+                <div style="color:#64748b;">No hay eventos registrados.</div>
+              <?php else: ?>
+                <div class="timeline">
+                  <?php foreach ($events as $event): ?>
+                    <div class="timeline-item">
+                      <div class="timeline-title"><?= htmlspecialchars($event->title ?? '') ?></div>
+                      <div class="timeline-meta">
+                        <?= htmlspecialchars($event->event_type ?? '') ?> Â· <?= htmlspecialchars($event->created_at ?? '') ?>
+                      </div>
+                      <?php if (!empty($event->message)): ?>
+                        <div class="timeline-body"><?= nl2br(htmlspecialchars($event->message)) ?></div>
+                      <?php endif; ?>
+                    </div>
+                  <?php endforeach; ?>
+                </div>
+              <?php endif; ?>
             </div>
           </div>
-        </div>
+
+          <div class="stack">
+            <div class="panel-card">
+              <h3>Acciones operativas</h3>
+
+              <div class="stack">
+                <form method="POST" action="/admin/sales-orders/update-operational-status" class="form-block">
+                  <?= Csrf::input(); ?>
+                  <input type="hidden" name="id" value="<?= (int)$item->id ?>">
+                  <input type="hidden" name="return_to" value="show">
+
+                  <label for="operational_status">Estado operativo</label>
+                  <select id="operational_status" name="operational_status">
+                    <option value="pending_documents" <?= ($item->operational_status ?? '') === 'pending_documents' ? 'selected' : '' ?>>Pendiente documentos</option>
+                    <option value="pending_booking" <?= ($item->operational_status ?? '') === 'pending_booking' ? 'selected' : '' ?>>Pendiente reserva</option>
+                    <option value="booked" <?= ($item->operational_status ?? '') === 'booked' ? 'selected' : '' ?>>Reservado</option>
+                    <option value="delivered" <?= ($item->operational_status ?? '') === 'delivered' ? 'selected' : '' ?>>Entregado</option>
+                    <option value="completed" <?= ($item->operational_status ?? '') === 'completed' ? 'selected' : '' ?>>Completado</option>
+                    <option value="cancelled" <?= ($item->operational_status ?? '') === 'cancelled' ? 'selected' : '' ?>>Cancelado</option>
+                  </select>
+
+                  <button type="submit" class="btn-main">Actualizar estado</button>
+                </form>
+
+                <form method="POST" action="/admin/sales-orders/update-notes" class="form-block">
+                  <?= Csrf::input(); ?>
+                  <input type="hidden" name="id" value="<?= (int)$item->id ?>">
+
+                  <label for="notes">Notas operativas</label>
+                  <textarea id="notes" name="notes"><?= htmlspecialchars($item->notes ?? '') ?></textarea>
+                  <a
+                    href="/experiences/share?order=<?= (int)$item->id ?>"
+                    target="_blank"
+                    class="btn-outline"
+                    style="text-decoration:none;"
+                  >
+                    Enlace para pedir experiencia
+                  </a>
+                  <button type="submit" class="btn-outline">Guardar notas</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
       </section>
     </main>
   </div>

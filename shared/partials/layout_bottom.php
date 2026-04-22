@@ -7,19 +7,58 @@
   (function(){
   const app = document.querySelector(".app");
   const toggle = document.querySelector("#toggleSidebar");
+  const closeSidebar = document.querySelector("#closeSidebar");
+  const sidebarScrim = document.querySelector("#sidebarScrim");
   const userChip = document.querySelector("#userChip");
   const menu = document.querySelector("#userMenu");
 
+  function isMobileViewport() {
+    return window.matchMedia("(max-width: 980px)").matches;
+  }
+
+  function closeMobileSidebar() {
+    if(app){
+      app.classList.remove("mobile-sidebar-open");
+    }
+  }
+
   if(toggle && app){
     toggle.addEventListener("click", () => {
+      if (isMobileViewport()) {
+        app.classList.toggle("mobile-sidebar-open");
+        return;
+      }
+
       app.classList.toggle("collapsed");
-      // opcional: recordar en localStorage
       localStorage.setItem("ui.sidebarCollapsed", app.classList.contains("collapsed") ? "1" : "0");
     });
 
     const saved = localStorage.getItem("ui.sidebarCollapsed");
-    if(saved === "1") app.classList.add("collapsed");
+    if(saved === "1" && !isMobileViewport()) app.classList.add("collapsed");
   }
+
+  if (closeSidebar) {
+    closeSidebar.addEventListener("click", closeMobileSidebar);
+  }
+
+  if (sidebarScrim) {
+    sidebarScrim.addEventListener("click", closeMobileSidebar);
+  }
+
+  window.addEventListener("resize", () => {
+    if (!app) return;
+    if (isMobileViewport()) {
+      app.classList.remove("collapsed");
+      return;
+    }
+
+    app.classList.remove("mobile-sidebar-open");
+
+    const saved = localStorage.getItem("ui.sidebarCollapsed");
+    if(saved === "1") {
+      app.classList.add("collapsed");
+    }
+  });
 
   // Dropdown usuario
   if(userChip && menu){
@@ -50,6 +89,15 @@
     b.addEventListener("click", (e)=>{
       if(e.target === b) b.classList.remove("open");
     });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeMobileSidebar();
+      if (menu) {
+        menu.classList.remove("open");
+      }
+    }
   });
 })();
 </script>

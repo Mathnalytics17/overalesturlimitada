@@ -5,6 +5,7 @@ $active = 'leads';
 $filters = $filters ?? [];
 $counts = $counts ?? [];
 $leads = $leads ?? [];
+$pagination = $pagination ?? [];
 
 function lead_status_label(string $status): string
 {
@@ -416,7 +417,7 @@ function lead_source_label(string $source): string
   </form>
 
   <div class="table-shell">
-    <div class="table-wrap">
+    <div class="table-wrap keep-scroll">
       <table class="crm-table">
         <thead>
           <tr>
@@ -433,16 +434,16 @@ function lead_source_label(string $source): string
         <tbody>
           <?php if ($leads === []): ?>
             <tr>
-              <td colspan="8">
+              <td colspan="8" data-label="Estado">
                 <div class="empty-box">No hay casos para los filtros aplicados.</div>
               </td>
             </tr>
           <?php else: ?>
             <?php foreach ($leads as $lead): ?>
               <tr>
-                <td class="lead-id">#<?= (int) $lead->id ?></td>
+                <td class="lead-id" data-label="#">#<?= (int) $lead->id ?></td>
 
-                <td>
+                <td data-label="Cliente">
                   <div class="client-name"><?= e((string) $lead->full_name) ?></div>
                   <div class="client-meta">
                     <?= e((string) $lead->email) ?><br>
@@ -450,27 +451,27 @@ function lead_source_label(string $source): string
                   </div>
                 </td>
 
-                <td>
+                <td data-label="Origen">
                   <span class="badge badge-gray">
                     <?= e(lead_source_label((string) $lead->source_type)) ?>
                   </span>
                 </td>
 
-                <td>
+                <td data-label="Asunto">
                   <div class="subject-text"><?= e((string) $lead->subject) ?></div>
                 </td>
 
-                <td>
+                <td data-label="Estado">
                   <span class="<?= e(lead_status_badge((string) $lead->status)) ?>">
                     <?= e(lead_status_label((string) $lead->status)) ?>
                   </span>
                 </td>
 
-                <td>
+                <td data-label="Fecha">
                   <div class="date-text"><?= e((string) $lead->created_at) ?></div>
                 </td>
 
-                <td>
+                <td data-label="Lead">
                   <?php if ((int)($lead->sales_opportunity_id ?? 0) > 0): ?>
                     <span class="badge badge-green">En ventas</span>
                   <?php else: ?>
@@ -478,7 +479,7 @@ function lead_source_label(string $source): string
                   <?php endif; ?>
                 </td>
 
-                <td class="actions-cell">
+                <td class="actions-cell" data-label="Acciones">
                   <div class="row-actions">
                     <a class="chip-link" href="/admin/leads/show?id=<?= (int)$lead->id ?>">Ver</a>
 
@@ -504,4 +505,6 @@ function lead_source_label(string $source): string
       </table>
     </div>
   </div>
+
+  <?= render_pagination($pagination, $filters) ?>
 </div>

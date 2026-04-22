@@ -1,10 +1,11 @@
 <?php
 $page_title = 'PQRS';
-$page_subtitle = 'Gestión de peticiones, quejas, reclamos y sugerencias';
+$page_subtitle = 'GestiÃ³n de peticiones, quejas, reclamos y sugerencias';
 $active = 'pqrs';
 
 $cases = $cases ?? [];
 $filters = $filters ?? [];
+$pagination = $pagination ?? [];
 ?>
 
 <div class="card">
@@ -17,8 +18,8 @@ $filters = $filters ?? [];
 
   <div class="sep"></div>
 
-  <form method="get" action="/admin/pqrs" style="display:grid;grid-template-columns:1fr 1fr 1.4fr auto;gap:12px;align-items:end;margin-bottom:18px;">
-    <div>
+  <form method="get" action="/admin/pqrs" class="admin-filter-grid" style="margin-bottom:18px;">
+    <div class="admin-filter-field">
       <label for="status" style="display:block;margin-bottom:6px;font-weight:600;">Estado</label>
       <select name="status" id="status" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;">
         <option value="">Todos</option>
@@ -30,7 +31,7 @@ $filters = $filters ?? [];
       </select>
     </div>
 
-    <div>
+    <div class="admin-filter-field">
       <label for="request_type" style="display:block;margin-bottom:6px;font-weight:600;">Tipo</label>
       <select name="request_type" id="request_type" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;">
         <option value="">Todos</option>
@@ -42,7 +43,7 @@ $filters = $filters ?? [];
       </select>
     </div>
 
-    <div>
+    <div class="admin-filter-field full">
       <label for="q" style="display:block;margin-bottom:6px;font-weight:600;">Buscar</label>
       <input
         type="text"
@@ -54,66 +55,67 @@ $filters = $filters ?? [];
       >
     </div>
 
-    <div>
+    <div class="admin-filter-actions">
       <button class="btn primary" type="submit">Filtrar</button>
+      <a class="btn" href="/admin/pqrs" style="text-decoration:none;">Limpiar</a>
     </div>
   </form>
 
-  <div style="overflow:auto;">
-    <table style="width:100%;border-collapse:collapse;">
+  <div class="table-wrap keep-scroll">
+    <table>
       <thead>
-        <tr style="background:#f8fafc;text-align:left;">
-          <th style="padding:12px;border-bottom:1px solid #e5e7eb;">Radicado</th>
-          <th style="padding:12px;border-bottom:1px solid #e5e7eb;">Cliente</th>
-          <th style="padding:12px;border-bottom:1px solid #e5e7eb;">Tipo</th>
-          <th style="padding:12px;border-bottom:1px solid #e5e7eb;">Asunto</th>
-          <th style="padding:12px;border-bottom:1px solid #e5e7eb;">Estado</th>
-          <th style="padding:12px;border-bottom:1px solid #e5e7eb;">Adjuntos</th>
-          <th style="padding:12px;border-bottom:1px solid #e5e7eb;">Fecha</th>
-          <th style="padding:12px;border-bottom:1px solid #e5e7eb;">Acciones</th>
+        <tr>
+          <th>Radicado</th>
+          <th>Cliente</th>
+          <th>Tipo</th>
+          <th>Asunto</th>
+          <th>Estado</th>
+          <th>Adjuntos</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
         <?php foreach ($cases as $case): ?>
           <tr>
-            <td style="padding:12px;border-bottom:1px solid #e5e7eb;">
+            <td data-label="Radicado">
               <?= e((string) ($case->radicado ?? '')) ?>
             </td>
 
-            <td style="padding:12px;border-bottom:1px solid #e5e7eb;">
+            <td data-label="Cliente">
               <div style="font-weight:700;"><?= e((string) ($case->full_name ?? '')) ?></div>
-              <div style="font-size:12px;color:#64748b;"><?= e((string) ($case->email ?? '')) ?></div>
+              <div class="t-muted"><?= e((string) ($case->email ?? '')) ?></div>
             </td>
 
-            <td style="padding:12px;border-bottom:1px solid #e5e7eb;">
+            <td data-label="Tipo">
               <?= e((string) ($case->request_type ?? '')) ?>
             </td>
 
-            <td style="padding:12px;border-bottom:1px solid #e5e7eb;">
+            <td data-label="Asunto">
               <?= e((string) ($case->subject ?? '')) ?>
             </td>
 
-            <td style="padding:12px;border-bottom:1px solid #e5e7eb;">
-              <?= e((string) ($case->status ?? '')) ?>
+            <td data-label="Estado">
+              <span class="badge neutral"><?= e((string) ($case->status ?? '')) ?></span>
             </td>
 
-            <td style="padding:12px;border-bottom:1px solid #e5e7eb;">
-             <?= ((int) ($case->has_attachments ?? 0) > 0) ? 'Sí' : 'No' ?>
+            <td data-label="Adjuntos">
+              <?= ((int) ($case->has_attachments ?? 0) > 0) ? 'SÃ­' : 'No' ?>
             </td>
 
-            <td style="padding:12px;border-bottom:1px solid #e5e7eb;">
+            <td data-label="Fecha">
               <?= e((string) ($case->created_at ?? '')) ?>
             </td>
 
-            <td style="padding:12px;border-bottom:1px solid #e5e7eb;">
-              <a class="btn" href="/admin/pqrs/show?id=<?= (int) ($case->id ?? 0) ?>">Ver</a>
+            <td data-label="Acciones">
+              <a class="btn small" href="/admin/pqrs/show?id=<?= (int) ($case->id ?? 0) ?>" style="text-decoration:none;">Ver</a>
             </td>
           </tr>
         <?php endforeach; ?>
 
         <?php if ($cases === []): ?>
           <tr>
-            <td colspan="8" style="padding:18px;text-align:center;color:#64748b;">
+            <td colspan="8" data-label="Estado" style="padding:18px;text-align:center;color:#64748b;">
               No hay PQRS registradas con esos filtros.
             </td>
           </tr>
@@ -121,4 +123,6 @@ $filters = $filters ?? [];
       </tbody>
     </table>
   </div>
+
+  <?= render_pagination($pagination, $filters) ?>
 </div>
