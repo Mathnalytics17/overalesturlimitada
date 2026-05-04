@@ -304,6 +304,10 @@ class LeadService
         if (!empty($metadata['oneWay'])) {
             $parts[] = 'Trayecto: solo ida.';
         }
+
+        if (!empty($metadata['passengerSummary'])) {
+            $parts[] = 'Viajeros: ' . trim((string) $metadata['passengerSummary']) . '.';
+        }
     } elseif ((string) $lead->source_type === 'package') {
         $parts[] = 'Quiero recibir información sobre un paquete turístico.';
 
@@ -355,6 +359,10 @@ class LeadService
 
         if (!empty($metadata['city'])) {
             $parts[] = 'Ciudad destino: ' . trim((string) $metadata['city']) . '.';
+        }
+
+        if (!empty($metadata['passengerSummary'])) {
+            $parts[] = 'Viajeros: ' . trim((string) $metadata['passengerSummary']) . '.';
         }
     } elseif ((string) $lead->source_type === 'package') {
         $parts[] = 'Solicitud: paquete turístico.';
@@ -438,6 +446,10 @@ class LeadService
     }
 
     if ($message === '' && $sourceType === 'tickets') {
+        $adults = max(1, (int) ($payload['adults'] ?? 1));
+        $children = max(0, (int) ($payload['children'] ?? 0));
+        $infants = max(0, (int) ($payload['infants'] ?? 0));
+        $passengerSummary = $this->buildPassengerSummary($adults, $children, $infants);
         $messageParts = [];
 
         if (!empty($payload['country'])) {
@@ -460,8 +472,17 @@ class LeadService
             $messageParts[] = 'Trayecto: solo ida';
         }
 
+        if ($passengerSummary !== '') {
+            $messageParts[] = 'Viajeros: ' . $passengerSummary;
+        }
+
         $message = implode(' | ', $messageParts);
     }
+
+    $ticketAdults = max(1, (int) ($payload['adults'] ?? 1));
+    $ticketChildren = max(0, (int) ($payload['children'] ?? 0));
+    $ticketInfants = max(0, (int) ($payload['infants'] ?? 0));
+    $ticketPassengerSummary = $this->buildPassengerSummary($ticketAdults, $ticketChildren, $ticketInfants);
 
     if ($message === '' && $sourceType === 'extra_service' && $extraService) {
         $message = 'Hola, quiero recibir información sobre ' . trim((string) $extraService->titulo) . '.';
@@ -503,6 +524,10 @@ class LeadService
             'departureDate' => $payload['departureDate'] ?? null,
             'returnDate' => $payload['returnDate'] ?? null,
             'oneWay' => !empty($payload['oneWay']),
+            'adults' => $sourceType === 'tickets' ? $ticketAdults : null,
+            'children' => $sourceType === 'tickets' ? $ticketChildren : null,
+            'infants' => $sourceType === 'tickets' ? $ticketInfants : null,
+            'passengerSummary' => $sourceType === 'tickets' ? $ticketPassengerSummary : null,
             'extra_service_id' => !empty($payload['extra_service_id']) ? (int) $payload['extra_service_id'] : null,
             'extra_service_title' => $extraService->titulo ?? null,
             'extra_service_slug' => $extraService->slug ?? null,
@@ -531,15 +556,27 @@ class LeadService
 
         if ($sourceType === 'tickets') {
             if (trim((string) ($payload['country'] ?? '')) === '') {
-                $errors['country'][] = 'Debes seleccionar un país destino.';
+                $errors['country'][] = 'Debes indicar un pais destino.';
             }
 
             if (trim((string) ($payload['city'] ?? '')) === '') {
-                $errors['city'][] = 'Debes seleccionar una ciudad destino.';
+                $errors['city'][] = 'Debes indicar una ciudad destino.';
             }
 
             if (trim((string) ($payload['departureDate'] ?? '')) === '') {
                 $errors['departureDate'][] = 'Debes ingresar la fecha de ida.';
+            }
+
+            if ((int) ($payload['adults'] ?? 0) < 1) {
+                $errors['adults'][] = 'Debe viajar al menos un adulto.';
+            }
+
+            if ((int) ($payload['children'] ?? 0) < 0) {
+                $errors['children'][] = 'La cantidad de ninos no puede ser negativa.';
+            }
+
+            if ((int) ($payload['infants'] ?? 0) < 0) {
+                $errors['infants'][] = 'La cantidad de bebes no puede ser negativa.';
             }
 
             if (empty($payload['oneWay']) && !empty($payload['returnDate']) && !empty($payload['departureDate'])) {
@@ -562,6 +599,25 @@ class LeadService
         }
 
         return $errors;
+    }
+
+    protected function buildPassengerSummary(int $adults, int $children, int $infants): string
+    {
+        $parts = [];
+
+        if ($adults > 0) {
+            $parts[] = $adults . ' ' . ($adults === 1 ? 'adulto' : 'adultos');
+        }
+
+        if ($children > 0) {
+            $parts[] = $children . ' ' . ($children === 1 ? 'nino' : 'ninos');
+        }
+
+        if ($infants > 0) {
+            $parts[] = $infants . ' ' . ($infants === 1 ? 'bebe' : 'bebes');
+        }
+
+        return implode(', ', $parts);
     }
 
     

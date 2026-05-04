@@ -11,7 +11,7 @@
   <div class="footer-container">
 
     <div class="footer-brand">
-      <h3>Alestur LTDA</h3>
+      <h3>Alestur Ltda</h3>
       <p>
         Agencia de viajes y servicios turísticos comprometida con brindar
         acompañamiento confiable, cercano y profesional en cada experiencia.
@@ -33,12 +33,12 @@
 
       <div class="footer-item">
         <i class="fa-solid fa-envelope"></i>
-        <span>overalesturemail@overalestur.com</span>
+        <span>gerencia@overalestur.com.co</span>
       </div>
 
       <div class="footer-item">
         <i class="fa-solid fa-id-card"></i>
-        <span>NIT - 10342343234</span>
+        <span>NIT - 824000089-4</span>
       </div>
     </div>
 
@@ -68,7 +68,7 @@
   </div>
 
   <div class="footer-bottom">
-    <p>© <?= date('Y') ?> Alestur LTDA. Todos los derechos reservados.</p>
+    <p>© <?= date('Y') ?> Alestur Ltda. Todos los derechos reservados.</p>
   </div>
 </footer>
 
