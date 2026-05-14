@@ -184,7 +184,7 @@ $services = $services ?? [];
             data-target="<?= e($service->slug) ?>"
             type="button"
           >
-            <?= e($service->titulo) ?>
+            <?= e($service->displayTitle()) ?>
           </button>
         <?php endforeach; ?>
       </nav>
@@ -195,10 +195,10 @@ $services = $services ?? [];
   <main>
     <?php foreach ($services as $service): ?>
       <section id="<?= e($service->slug) ?>" class="section">
-        <h2 class="section-title"><?= e($service->titulo) ?></h2>
+        <h2 class="section-title"><?= e($service->displayTitle()) ?></h2>
         <div class="card">
           <div class="img">
-            <img src="<?= e($service->imagen) ?>" alt="<?= e($service->titulo) ?>" width="700" height="400" />
+            <img src="<?= e($service->imagen) ?>" alt="<?= e($service->displayTitle()) ?>" width="700" height="400" />
           </div>
           <div class="text">
             <p><?= e($service->descripcion_corta) ?></p>

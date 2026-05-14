@@ -65,7 +65,7 @@ function sales_form_error(array $errors, string $field): ?string
           <option value="package" <?= sales_form_old($old, 'interest_type') === 'package' ? 'selected' : '' ?>>Paquete</option>
           <option value="tickets" <?= sales_form_old($old, 'interest_type') === 'tickets' ? 'selected' : '' ?>>Tiquetes</option>
           <option value="extra_service" <?= sales_form_old($old, 'interest_type') === 'extra_service' ? 'selected' : '' ?>>Servicio extra</option>
-          <option value="visa_passport" <?= sales_form_old($old, 'interest_type') === 'visa_passport' ? 'selected' : '' ?>>Pasaporte/Visa</option>
+          <option value="visa_passport" <?= sales_form_old($old, 'interest_type') === 'visa_passport' ? 'selected' : '' ?>>Visa / tramites</option>
           <option value="medical_assistance" <?= sales_form_old($old, 'interest_type') === 'medical_assistance' ? 'selected' : '' ?>>Asistencia médica</option>
           <option value="simcard" <?= sales_form_old($old, 'interest_type') === 'simcard' ? 'selected' : '' ?>>Simcard</option>
           <option value="language_course" <?= sales_form_old($old, 'interest_type') === 'language_course' ? 'selected' : '' ?>>Curso de idiomas</option>

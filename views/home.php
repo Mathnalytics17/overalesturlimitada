@@ -3,7 +3,7 @@
     <section class="hero-home">
         <div class="hero-overlay"></div>
 
-        <img class="hero-bg" src="/img/home/image (28).png" alt="Experiencias de viaje Alestur">
+        <img class="hero-bg" src="/img/home/image (28).png" alt="Paisaje inspirado en Santa Marta, Magdalena">
 
         <div class="hero-content">
             <div class="hero-text">
@@ -11,7 +11,7 @@
                 <h1>Viajes diseñados con confianza, respaldo y atención humana</h1>
                 <p>
                     En Alestur te ayudamos a planear cada detalle de tu viaje:
-                    tiquetes, paquetes, servicios complementarios y asesoría
+                    Tiquetes, paquetes, servicios complementarios y asesoría
                     personalizada para que vivas una experiencia tranquila y memorable.
                 </p>
 
@@ -68,7 +68,7 @@
             <article class="service-card">
                 <div class="service-icon"><i class="fa-solid fa-passport"></i></div>
                 <h3>Servicios extra</h3>
-                <p>Pasaportes, visas, asistencias médicas, simcards y otros apoyos para tu viaje.</p>
+                <p>Visas, asistencias médicas, simcards y otros apoyos para tu viaje.</p>
                 <a href="/extra-services">Explorar</a>
             </article>
         </div>

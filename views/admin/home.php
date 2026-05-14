@@ -72,7 +72,7 @@
               <div class="t-muted">+57 300 000 0000</div>
               camila@email.com
             </td>
-            <td>Pasaporte / visa</td>
+            <td>Visa / tramites</td>
             <td><span class="badge info">Nuevo</span></td>
             <td>
               <div class="row-actions">
@@ -196,7 +196,7 @@
           <label>Motivo</label>
           <select>
             <option>Tiquete</option>
-            <option>Pasaporte / visa</option>
+            <option>Visa / tramites</option>
             <option>Escuela de idiomas</option>
           </select>
         </div>

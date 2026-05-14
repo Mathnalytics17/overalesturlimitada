@@ -58,7 +58,7 @@ class ExtraService extends Model
     public function leadSubject(): string
     {
         $map = [
-            'pasaportes-visas' => 'Solicitud de información - Pasaportes y Visas',
+            'pasaportes-visas' => 'Solicitud de información - Visas y tramites de viaje',
             'simcards-viajes-exterior' => 'Solicitud de información - Simcards para viajes al exterior',
             'asistencias-medicas' => 'Solicitud de información - Asistencias médicas',
             'receptivo-tours-internos' => 'Solicitud de información - Receptivo y tours internos',
@@ -68,9 +68,18 @@ class ExtraService extends Model
         return $map[$this->slug] ?? ('Solicitud de información - ' . $this->titulo);
     }
 
+    public function displayTitle(): string
+    {
+        $map = [
+            'pasaportes-visas' => 'Visas y tramites de viaje',
+        ];
+
+        return $map[$this->slug] ?? trim((string) $this->titulo);
+    }
+
     public function defaultWhatsAppMessage(?string $name = null): string
     {
-        $message = 'Hola, quiero recibir información sobre ' . trim((string) $this->titulo) . '.';
+        $message = 'Hola, quiero recibir información sobre ' . $this->displayTitle() . '.';
 
         $name = trim((string) $name);
         if ($name !== '') {

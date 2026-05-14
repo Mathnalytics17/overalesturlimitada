@@ -308,6 +308,22 @@ class LeadService
         if (!empty($metadata['passengerSummary'])) {
             $parts[] = 'Viajeros: ' . trim((string) $metadata['passengerSummary']) . '.';
         }
+
+        if (!empty($metadata['travelWithPet'])) {
+            $parts[] = 'Viaje con mascota: si.';
+        }
+
+        if (!empty($metadata['needWheelchair'])) {
+            $parts[] = 'Requiere silla de ruedas: si.';
+        }
+
+        if (!empty($metadata['sportsEquipment'])) {
+            $parts[] = 'Lleva articulo deportivo: si.';
+        }
+
+        if (!empty($metadata['specialRequestNotes'])) {
+            $parts[] = 'Detalles adicionales: ' . trim((string) $metadata['specialRequestNotes']) . '.';
+        }
     } elseif ((string) $lead->source_type === 'package') {
         $parts[] = 'Quiero recibir información sobre un paquete turístico.';
 
@@ -363,6 +379,18 @@ class LeadService
 
         if (!empty($metadata['passengerSummary'])) {
             $parts[] = 'Viajeros: ' . trim((string) $metadata['passengerSummary']) . '.';
+        }
+
+        if (!empty($metadata['travelWithPet'])) {
+            $parts[] = 'Viaje con mascota: si.';
+        }
+
+        if (!empty($metadata['needWheelchair'])) {
+            $parts[] = 'Requiere silla de ruedas: si.';
+        }
+
+        if (!empty($metadata['sportsEquipment'])) {
+            $parts[] = 'Lleva articulo deportivo: si.';
         }
     } elseif ((string) $lead->source_type === 'package') {
         $parts[] = 'Solicitud: paquete turístico.';
@@ -476,6 +504,22 @@ class LeadService
             $messageParts[] = 'Viajeros: ' . $passengerSummary;
         }
 
+        if (!empty($payload['travelWithPet'])) {
+            $messageParts[] = 'Viaja con mascota: si';
+        }
+
+        if (!empty($payload['needWheelchair'])) {
+            $messageParts[] = 'Necesita silla de ruedas: si';
+        }
+
+        if (!empty($payload['sportsEquipment'])) {
+            $messageParts[] = 'Lleva articulo deportivo: si';
+        }
+
+        if (!empty($payload['specialRequestNotes'])) {
+            $messageParts[] = 'Detalles adicionales: ' . trim((string) $payload['specialRequestNotes']);
+        }
+
         $message = implode(' | ', $messageParts);
     }
 
@@ -485,7 +529,7 @@ class LeadService
     $ticketPassengerSummary = $this->buildPassengerSummary($ticketAdults, $ticketChildren, $ticketInfants);
 
     if ($message === '' && $sourceType === 'extra_service' && $extraService) {
-        $message = 'Hola, quiero recibir información sobre ' . trim((string) $extraService->titulo) . '.';
+        $message = 'Hola, quiero recibir información sobre ' . $extraService->displayTitle() . '.';
     }
 
     if ($message === '' && $sourceType === 'package') {
@@ -528,8 +572,12 @@ class LeadService
             'children' => $sourceType === 'tickets' ? $ticketChildren : null,
             'infants' => $sourceType === 'tickets' ? $ticketInfants : null,
             'passengerSummary' => $sourceType === 'tickets' ? $ticketPassengerSummary : null,
+            'travelWithPet' => $sourceType === 'tickets' ? !empty($payload['travelWithPet']) : null,
+            'needWheelchair' => $sourceType === 'tickets' ? !empty($payload['needWheelchair']) : null,
+            'sportsEquipment' => $sourceType === 'tickets' ? !empty($payload['sportsEquipment']) : null,
+            'specialRequestNotes' => $sourceType === 'tickets' ? trim((string) ($payload['specialRequestNotes'] ?? '')) : null,
             'extra_service_id' => !empty($payload['extra_service_id']) ? (int) $payload['extra_service_id'] : null,
-            'extra_service_title' => $extraService->titulo ?? null,
+            'extra_service_title' => $extraService ? $extraService->displayTitle() : null,
             'extra_service_slug' => $extraService->slug ?? null,
 
             'package_title' => $payload['package_title'] ?? null,

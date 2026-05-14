@@ -117,6 +117,49 @@
 
       <p class="passenger-summary" id="passengerSummary">Viaja 1 adulto.</p>
 
+      <div class="mb-3">
+        <label class="form-label">Necesidades adicionales del viaje</label>
+        <div class="form-grid form-grid-3">
+          <div class="checkbox-container">
+            <input
+              type="checkbox"
+              id="travelWithPet"
+              name="travelWithPet"
+              value="1"
+              <?= !empty($old['travelWithPet'] ?? null) ? "checked" : "" ?>
+            >
+            <label for="travelWithPet">Viaja con mascota</label>
+          </div>
+
+          <div class="checkbox-container">
+            <input
+              type="checkbox"
+              id="needWheelchair"
+              name="needWheelchair"
+              value="1"
+              <?= !empty($old['needWheelchair'] ?? null) ? "checked" : "" ?>
+            >
+            <label for="needWheelchair">Necesita silla de ruedas</label>
+          </div>
+
+          <div class="checkbox-container">
+            <input
+              type="checkbox"
+              id="sportsEquipment"
+              name="sportsEquipment"
+              value="1"
+              <?= !empty($old['sportsEquipment'] ?? null) ? "checked" : "" ?>
+            >
+            <label for="sportsEquipment">Lleva articulo deportivo</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="specialRequestNotes" class="form-label">Detalles adicionales</label>
+        <textarea id="specialRequestNotes" name="specialRequestNotes" rows="4" placeholder="Cuéntanos si la mascota necesita guacal, si el articulo deportivo es tabla, bicicleta, etc."><?= e((string) (($old['specialRequestNotes'] ?? ''))) ?></textarea>
+      </div>
+
       <!-- FECHAS -->
       <div class="mb-3">
         <label for="departureDate" class="form-label">Fecha de ida</label>

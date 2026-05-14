@@ -103,7 +103,7 @@
             <option>Todos</option>
             <option>Contacto</option>
             <option>Tiquete</option>
-            <option>Pasaporte / visa</option>
+            <option>Visa / tramites</option>
           </select>
         </div>
         <div class="field">
