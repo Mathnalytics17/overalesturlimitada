@@ -2,18 +2,18 @@
 
 namespace app\Controllers\api;
 
-use app\Core\Response;
 use app\Services\Crm\LeadService;
 
 class ChatbotLeadController
 {
-    public function whatsappAccepted(): void
+    public function whatsappAccepted($request = null): void
     {
         $this->authorize();
+
         $payload = $this->jsonBody();
 
         if (($payload['accepted'] ?? null) !== true) {
-            Response::json([
+            $this->json([
                 'ok' => false,
                 'message' => 'Solo se crean leads cuando accepted=true.',
             ], 422);
@@ -24,39 +24,51 @@ class ChatbotLeadController
             $service = new LeadService();
             $result = $service->upsertFromWhatsApp($payload);
 
-            Response::json([
+            $this->json([
                 'ok' => true,
-                'created' => $result['created'],
-                'lead_id' => $result['lead_id'],
-            ]);
+                'created' => $result['created'] ?? false,
+                'lead_id' => $result['lead_id'] ?? null,
+            ], 200);
+            return;
         } catch (\Throwable $e) {
-            Response::json([
+            $this->json([
                 'ok' => false,
                 'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ], 500);
+            return;
         }
     }
 
     private function authorize(): void
     {
-        $expected = (string) (getenv('CHATBOT_INBOUND_TOKEN') ?: getenv('CHATBOT_API_TOKEN') ?: '');
+        $expected = (string) (
+            getenv('CHATBOT_INBOUND_TOKEN')
+            ?: getenv('CHATBOT_API_TOKEN')
+            ?: ''
+        );
 
         if ($expected === '') {
-            Response::json([
+            $this->json([
                 'ok' => false,
                 'message' => 'CHATBOT_INBOUND_TOKEN no está configurado en la página PHP.',
             ], 500);
             exit;
         }
 
-        $header = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+        $header = $_SERVER['HTTP_AUTHORIZATION']
+            ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+            ?? '';
+
         $token = '';
+
         if (preg_match('/Bearer\s+(.+)/i', $header, $m)) {
             $token = trim($m[1]);
         }
 
-        if (!hash_equals($expected, $token)) {
-            Response::json([
+        if ($token === '' || !hash_equals($expected, $token)) {
+            $this->json([
                 'ok' => false,
                 'message' => 'No autorizado.',
             ], 401);
@@ -70,13 +82,27 @@ class ChatbotLeadController
         $data = json_decode($raw, true);
 
         if (!is_array($data)) {
-            Response::json([
+            $this->json([
                 'ok' => false,
                 'message' => 'JSON inválido.',
+                'raw' => $raw,
             ], 400);
             exit;
         }
 
         return $data;
+    }
+
+    private function json(array $data, int $status = 200): void
+    {
+        if (!headers_sent()) {
+            http_response_code($status);
+            header('Content-Type: application/json; charset=utf-8');
+        }
+
+        echo json_encode(
+            $data,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        );
     }
 }
