@@ -245,18 +245,18 @@ class LeadService
     }
 
     public function buildExtraServiceWhatsAppUrl($service, array $payload = []): string
-{
-    $number = preg_replace('/\D+/', '', (string) env('WHATSAPP_NUMBER', ''));
+    {
+        $number = preg_replace('/\D+/', '', (string) env('WHATSAPP_NUMBER', ''));
 
-    if ($number === '' || !$service) {
-        return '';
+        if ($number === '' || !$service) {
+            return '';
+        }
+
+        $name = trim((string) ($payload['nombre'] ?? ''));
+        $msg = $service->defaultWhatsAppMessage($name);
+
+        return 'https://wa.me/' . $number . '?text=' . rawurlencode($msg);
     }
-
-    $name = trim((string) ($payload['nombre'] ?? ''));
-    $msg = $service->defaultWhatsAppMessage($name);
-
-    return 'https://wa.me/' . $number . '?text=' . rawurlencode($msg);
-}
 
     public function buildAdvisorWhatsAppUrl(Lead $lead): string
     {
@@ -270,114 +270,114 @@ class LeadService
         return 'https://wa.me/' . $clientNumber . '?text=' . $message;
     }
 
-   public function buildWhatsAppMessage(Lead $lead): string
-{
-    $metadata = $lead->metadata_json ?? [];
-    if (is_string($metadata)) {
-        $metadata = json_decode($metadata, true) ?: [];
+    public function buildWhatsAppMessage(Lead $lead): string
+    {
+        $metadata = $lead->metadata_json ?? [];
+        if (is_string($metadata)) {
+            $metadata = json_decode($metadata, true) ?: [];
+        }
+
+        $parts = [
+            'Hola, vengo desde la web de Alestur.',
+            'Mi nombre es ' . trim((string) $lead->full_name) . '.',
+        ];
+
+        if ((string) $lead->source_type === 'tickets') {
+            $parts[] = 'Quiero consultar disponibilidad de tiquetes.';
+
+            if (!empty($metadata['country'])) {
+                $parts[] = 'País destino: ' . trim((string) $metadata['country']) . '.';
+            }
+
+            if (!empty($metadata['city'])) {
+                $parts[] = 'Ciudad destino: ' . trim((string) $metadata['city']) . '.';
+            }
+
+            if (!empty($metadata['departureDate'])) {
+                $parts[] = 'Fecha de ida: ' . trim((string) $metadata['departureDate']) . '.';
+            }
+
+            if (!empty($metadata['returnDate']) && empty($metadata['oneWay'])) {
+                $parts[] = 'Fecha de regreso: ' . trim((string) $metadata['returnDate']) . '.';
+            }
+
+            if (!empty($metadata['oneWay'])) {
+                $parts[] = 'Trayecto: solo ida.';
+            }
+        } elseif ((string) $lead->source_type === 'package') {
+            $parts[] = 'Quiero recibir información sobre un paquete turístico.';
+
+            if (!empty($metadata['package_title'])) {
+                $parts[] = 'Paquete: ' . trim((string) $metadata['package_title']) . '.';
+            }
+
+            if (!empty($lead->package_slug)) {
+                $parts[] = 'Referencia: ' . trim((string) $lead->package_slug) . '.';
+            }
+
+            if (!empty($metadata['travel_month'])) {
+                $parts[] = 'Mes estimado de viaje: ' . trim((string) $metadata['travel_month']) . '.';
+            }
+
+            if (!empty($metadata['travelers'])) {
+                $parts[] = 'Viajeros: ' . trim((string) $metadata['travelers']) . '.';
+            }
+        } else {
+            if (!empty($lead->subject)) {
+                $parts[] = 'Motivo: ' . trim((string) $lead->subject) . '.';
+            }
+        }
+
+        if (!empty($lead->message)) {
+            $parts[] = 'Mensaje: ' . trim((string) $lead->message);
+        }
+
+        return implode("\n", array_filter($parts));
     }
-
-    $parts = [
-        'Hola, vengo desde la web de Alestur.',
-        'Mi nombre es ' . trim((string) $lead->full_name) . '.',
-    ];
-
-    if ((string) $lead->source_type === 'tickets') {
-        $parts[] = 'Quiero consultar disponibilidad de tiquetes.';
-
-        if (!empty($metadata['country'])) {
-            $parts[] = 'País destino: ' . trim((string) $metadata['country']) . '.';
-        }
-
-        if (!empty($metadata['city'])) {
-            $parts[] = 'Ciudad destino: ' . trim((string) $metadata['city']) . '.';
-        }
-
-        if (!empty($metadata['departureDate'])) {
-            $parts[] = 'Fecha de ida: ' . trim((string) $metadata['departureDate']) . '.';
-        }
-
-        if (!empty($metadata['returnDate']) && empty($metadata['oneWay'])) {
-            $parts[] = 'Fecha de regreso: ' . trim((string) $metadata['returnDate']) . '.';
-        }
-
-        if (!empty($metadata['oneWay'])) {
-            $parts[] = 'Trayecto: solo ida.';
-        }
-    } elseif ((string) $lead->source_type === 'package') {
-        $parts[] = 'Quiero recibir información sobre un paquete turístico.';
-
-        if (!empty($metadata['package_title'])) {
-            $parts[] = 'Paquete: ' . trim((string) $metadata['package_title']) . '.';
-        }
-
-        if (!empty($lead->package_slug)) {
-            $parts[] = 'Referencia: ' . trim((string) $lead->package_slug) . '.';
-        }
-
-        if (!empty($metadata['travel_month'])) {
-            $parts[] = 'Mes estimado de viaje: ' . trim((string) $metadata['travel_month']) . '.';
-        }
-
-        if (!empty($metadata['travelers'])) {
-            $parts[] = 'Viajeros: ' . trim((string) $metadata['travelers']) . '.';
-        }
-    } else {
-        if (!empty($lead->subject)) {
-            $parts[] = 'Motivo: ' . trim((string) $lead->subject) . '.';
-        }
-    }
-
-    if (!empty($lead->message)) {
-        $parts[] = 'Mensaje: ' . trim((string) $lead->message);
-    }
-
-    return implode("\n", array_filter($parts));
-}
     public function buildAdvisorWhatsAppMessage(Lead $lead): string
-{
-    $metadata = $lead->metadata_json ?? [];
-    if (is_string($metadata)) {
-        $metadata = json_decode($metadata, true) ?: [];
+    {
+        $metadata = $lead->metadata_json ?? [];
+        if (is_string($metadata)) {
+            $metadata = json_decode($metadata, true) ?: [];
+        }
+
+        $parts = [
+            'Hola, te saluda un asesor de Alestur.',
+            'Recibimos tu solicitud desde nuestra web.',
+        ];
+
+        if ((string) $lead->source_type === 'tickets') {
+            $parts[] = 'Solicitud: consulta de tiquetes.';
+
+            if (!empty($metadata['country'])) {
+                $parts[] = 'País destino: ' . trim((string) $metadata['country']) . '.';
+            }
+
+            if (!empty($metadata['city'])) {
+                $parts[] = 'Ciudad destino: ' . trim((string) $metadata['city']) . '.';
+            }
+        } elseif ((string) $lead->source_type === 'package') {
+            $parts[] = 'Solicitud: paquete turístico.';
+
+            if (!empty($metadata['package_title'])) {
+                $parts[] = 'Paquete: ' . trim((string) $metadata['package_title']) . '.';
+            }
+
+            if (!empty($metadata['travel_month'])) {
+                $parts[] = 'Mes estimado de viaje: ' . trim((string) $metadata['travel_month']) . '.';
+            }
+
+            if (!empty($metadata['travelers'])) {
+                $parts[] = 'Viajeros: ' . trim((string) $metadata['travelers']) . '.';
+            }
+        } elseif (!empty($lead->subject)) {
+            $parts[] = 'Asunto: ' . trim((string) $lead->subject) . '.';
+        }
+
+        $parts[] = 'Quedo atento para ayudarte con tu solicitud.';
+
+        return implode("\n", array_filter($parts));
     }
-
-    $parts = [
-        'Hola, te saluda un asesor de Alestur.',
-        'Recibimos tu solicitud desde nuestra web.',
-    ];
-
-    if ((string) $lead->source_type === 'tickets') {
-        $parts[] = 'Solicitud: consulta de tiquetes.';
-
-        if (!empty($metadata['country'])) {
-            $parts[] = 'País destino: ' . trim((string) $metadata['country']) . '.';
-        }
-
-        if (!empty($metadata['city'])) {
-            $parts[] = 'Ciudad destino: ' . trim((string) $metadata['city']) . '.';
-        }
-    } elseif ((string) $lead->source_type === 'package') {
-        $parts[] = 'Solicitud: paquete turístico.';
-
-        if (!empty($metadata['package_title'])) {
-            $parts[] = 'Paquete: ' . trim((string) $metadata['package_title']) . '.';
-        }
-
-        if (!empty($metadata['travel_month'])) {
-            $parts[] = 'Mes estimado de viaje: ' . trim((string) $metadata['travel_month']) . '.';
-        }
-
-        if (!empty($metadata['travelers'])) {
-            $parts[] = 'Viajeros: ' . trim((string) $metadata['travelers']) . '.';
-        }
-    } elseif (!empty($lead->subject)) {
-        $parts[] = 'Asunto: ' . trim((string) $lead->subject) . '.';
-    }
-
-    $parts[] = 'Quedo atento para ayudarte con tu solicitud.';
-
-    return implode("\n", array_filter($parts));
-}
 
     protected function logInteraction(int $leadId, ?int $adminUserId, string $channel, string $direction, string $eventType, string $message, ?array $meta = null): void
     {
@@ -395,124 +395,124 @@ class LeadService
     }
 
     protected function normalizePayload(string $sourceType, array $payload): array
-{
-    $fullName = trim((string) ($payload['full_name'] ?? $payload['nombre'] ?? $payload['firstLastName'] ?? $payload['name'] ?? ''));
-    $subject = trim((string) ($payload['subject'] ?? ''));
-    $subject = mb_substr($subject, 0, 255);
-
-    $message = trim((string) ($payload['message'] ?? $payload['mensaje'] ?? ''));
-
-    $extraService = null;
-    if ($sourceType === 'extra_service' && !empty($payload['extra_service_id'])) {
-        $extraService = ExtraService::findActiveById((int) $payload['extra_service_id']);
-        if ($extraService) {
-            $subject = $extraService->leadSubject();
-            $subject = mb_substr($subject, 0, 255);
-        }
-    }
-
-    if ($subject === '' && $sourceType === 'tickets') {
-        $country = trim((string) ($payload['country'] ?? ''));
-        $city = trim((string) ($payload['city'] ?? ''));
-        $subject = 'Solicitud de tiquetes';
-
-        if ($country !== '' || $city !== '') {
-            $subject .= ' - ' . trim($country . ' ' . $city);
-            $subject = mb_substr($subject, 0, 255);
-        }
-    }
-
-    if ($subject === '' && $sourceType === 'package') {
-        $packageTitle = trim((string) ($payload['package_title'] ?? ''));
-        $packageSlug = trim((string) ($payload['package_slug'] ?? ''));
-
-        $subject = $packageTitle !== ''
-            ? 'Consulta de paquete - ' . $packageTitle
-            : 'Consulta de paquete';
-
-        if ($packageTitle === '' && $packageSlug !== '') {
-            $subject .= ' - ' . $packageSlug;
-        }
-
+    {
+        $fullName = trim((string) ($payload['full_name'] ?? $payload['nombre'] ?? $payload['firstLastName'] ?? $payload['name'] ?? ''));
+        $subject = trim((string) ($payload['subject'] ?? ''));
         $subject = mb_substr($subject, 0, 255);
+
+        $message = trim((string) ($payload['message'] ?? $payload['mensaje'] ?? ''));
+
+        $extraService = null;
+        if ($sourceType === 'extra_service' && !empty($payload['extra_service_id'])) {
+            $extraService = ExtraService::findActiveById((int) $payload['extra_service_id']);
+            if ($extraService) {
+                $subject = $extraService->leadSubject();
+                $subject = mb_substr($subject, 0, 255);
+            }
+        }
+
+        if ($subject === '' && $sourceType === 'tickets') {
+            $country = trim((string) ($payload['country'] ?? ''));
+            $city = trim((string) ($payload['city'] ?? ''));
+            $subject = 'Solicitud de tiquetes';
+
+            if ($country !== '' || $city !== '') {
+                $subject .= ' - ' . trim($country . ' ' . $city);
+                $subject = mb_substr($subject, 0, 255);
+            }
+        }
+
+        if ($subject === '' && $sourceType === 'package') {
+            $packageTitle = trim((string) ($payload['package_title'] ?? ''));
+            $packageSlug = trim((string) ($payload['package_slug'] ?? ''));
+
+            $subject = $packageTitle !== ''
+                ? 'Consulta de paquete - ' . $packageTitle
+                : 'Consulta de paquete';
+
+            if ($packageTitle === '' && $packageSlug !== '') {
+                $subject .= ' - ' . $packageSlug;
+            }
+
+            $subject = mb_substr($subject, 0, 255);
+        }
+
+        if ($message === '' && $sourceType === 'tickets') {
+            $messageParts = [];
+
+            if (!empty($payload['country'])) {
+                $messageParts[] = 'País destino: ' . trim((string) $payload['country']);
+            }
+
+            if (!empty($payload['city'])) {
+                $messageParts[] = 'Ciudad destino: ' . trim((string) $payload['city']);
+            }
+
+            if (!empty($payload['departureDate'])) {
+                $messageParts[] = 'Fecha de ida: ' . trim((string) $payload['departureDate']);
+            }
+
+            if (!empty($payload['returnDate']) && empty($payload['oneWay'])) {
+                $messageParts[] = 'Fecha de regreso: ' . trim((string) $payload['returnDate']);
+            }
+
+            if (!empty($payload['oneWay'])) {
+                $messageParts[] = 'Trayecto: solo ida';
+            }
+
+            $message = implode(' | ', $messageParts);
+        }
+
+        if ($message === '' && $sourceType === 'extra_service' && $extraService) {
+            $message = 'Hola, quiero recibir información sobre ' . trim((string) $extraService->titulo) . '.';
+        }
+
+        if ($message === '' && $sourceType === 'package') {
+            $packageTitle = trim((string) ($payload['package_title'] ?? ''));
+            $travelMonth = trim((string) ($payload['travel_month'] ?? ''));
+            $travelers = trim((string) ($payload['travelers'] ?? ''));
+
+            $messageParts = [];
+
+            $messageParts[] = $packageTitle !== ''
+                ? 'Hola, me interesa el paquete ' . $packageTitle . ' y quiero continuar la atención por WhatsApp.'
+                : 'Hola, me interesa este paquete y quiero continuar la atención por WhatsApp.';
+
+            if ($travelMonth !== '') {
+                $messageParts[] = 'Mes estimado de viaje: ' . $travelMonth . '.';
+            }
+
+            if ($travelers !== '') {
+                $messageParts[] = 'Viajeros: ' . $travelers . '.';
+            }
+
+            $message = implode(' ', $messageParts);
+        }
+
+        return [
+            'full_name' => $fullName,
+            'email' => trim((string) ($payload['email'] ?? '')),
+            'phone' => normalize_phone((string) ($payload['telefono'] ?? $payload['phone'] ?? '')),
+            'subject' => $subject,
+            'message' => $message,
+            'package_id' => !empty($payload['package_id']) ? (int) $payload['package_id'] : null,
+            'package_slug' => trim((string) ($payload['package_slug'] ?? '')),
+            'metadata' => [
+                'country' => $payload['country'] ?? null,
+                'city' => $payload['city'] ?? null,
+                'departureDate' => $payload['departureDate'] ?? null,
+                'returnDate' => $payload['returnDate'] ?? null,
+                'oneWay' => !empty($payload['oneWay']),
+                'extra_service_id' => !empty($payload['extra_service_id']) ? (int) $payload['extra_service_id'] : null,
+                'extra_service_title' => $extraService->titulo ?? null,
+                'extra_service_slug' => $extraService->slug ?? null,
+
+                'package_title' => $payload['package_title'] ?? null,
+                'travel_month' => $payload['travel_month'] ?? null,
+                'travelers' => !empty($payload['travelers']) ? (int) $payload['travelers'] : null,
+            ],
+        ];
     }
-
-    if ($message === '' && $sourceType === 'tickets') {
-        $messageParts = [];
-
-        if (!empty($payload['country'])) {
-            $messageParts[] = 'País destino: ' . trim((string) $payload['country']);
-        }
-
-        if (!empty($payload['city'])) {
-            $messageParts[] = 'Ciudad destino: ' . trim((string) $payload['city']);
-        }
-
-        if (!empty($payload['departureDate'])) {
-            $messageParts[] = 'Fecha de ida: ' . trim((string) $payload['departureDate']);
-        }
-
-        if (!empty($payload['returnDate']) && empty($payload['oneWay'])) {
-            $messageParts[] = 'Fecha de regreso: ' . trim((string) $payload['returnDate']);
-        }
-
-        if (!empty($payload['oneWay'])) {
-            $messageParts[] = 'Trayecto: solo ida';
-        }
-
-        $message = implode(' | ', $messageParts);
-    }
-
-    if ($message === '' && $sourceType === 'extra_service' && $extraService) {
-        $message = 'Hola, quiero recibir información sobre ' . trim((string) $extraService->titulo) . '.';
-    }
-
-    if ($message === '' && $sourceType === 'package') {
-        $packageTitle = trim((string) ($payload['package_title'] ?? ''));
-        $travelMonth = trim((string) ($payload['travel_month'] ?? ''));
-        $travelers = trim((string) ($payload['travelers'] ?? ''));
-
-        $messageParts = [];
-
-        $messageParts[] = $packageTitle !== ''
-            ? 'Hola, me interesa el paquete ' . $packageTitle . ' y quiero continuar la atención por WhatsApp.'
-            : 'Hola, me interesa este paquete y quiero continuar la atención por WhatsApp.';
-
-        if ($travelMonth !== '') {
-            $messageParts[] = 'Mes estimado de viaje: ' . $travelMonth . '.';
-        }
-
-        if ($travelers !== '') {
-            $messageParts[] = 'Viajeros: ' . $travelers . '.';
-        }
-
-        $message = implode(' ', $messageParts);
-    }
-
-    return [
-        'full_name' => $fullName,
-        'email' => trim((string) ($payload['email'] ?? '')),
-        'phone' => normalize_phone((string) ($payload['telefono'] ?? $payload['phone'] ?? '')),
-        'subject' => $subject,
-        'message' => $message,
-        'package_id' => !empty($payload['package_id']) ? (int) $payload['package_id'] : null,
-        'package_slug' => trim((string) ($payload['package_slug'] ?? '')),
-        'metadata' => [
-            'country' => $payload['country'] ?? null,
-            'city' => $payload['city'] ?? null,
-            'departureDate' => $payload['departureDate'] ?? null,
-            'returnDate' => $payload['returnDate'] ?? null,
-            'oneWay' => !empty($payload['oneWay']),
-            'extra_service_id' => !empty($payload['extra_service_id']) ? (int) $payload['extra_service_id'] : null,
-            'extra_service_title' => $extraService->titulo ?? null,
-            'extra_service_slug' => $extraService->slug ?? null,
-
-            'package_title' => $payload['package_title'] ?? null,
-            'travel_month' => $payload['travel_month'] ?? null,
-            'travelers' => !empty($payload['travelers']) ? (int) $payload['travelers'] : null,
-        ],
-    ];
-}
     protected function validate(string $sourceType, array $data, array $payload = []): array
     {
         $errors = [];
@@ -564,7 +564,7 @@ class LeadService
         return $errors;
     }
 
-    
+
 
 
     /**
@@ -588,6 +588,26 @@ class LeadService
         $displayPhone = $phone !== '' ? $phone : $phoneJid;
         $leadName = $name !== '' ? $name : 'Contacto externo / WhatsApp';
 
+        /*
+     * WhatsApp normalmente no entrega email.
+     * Como la tabla leads exige email NOT NULL, generamos un email técnico único.
+     */
+        $email = trim((string) ($payload['email'] ?? ''));
+
+        if ($email === '') {
+            $emailBase = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', $displayPhone));
+            if ($emailBase === '') {
+                $emailBase = 'whatsapp' . substr(sha1($displayPhone . $phoneJid . $botSession), 0, 12);
+            }
+
+            $sessionSlug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '', $botSession));
+            if ($sessionSlug === '') {
+                $sessionSlug = 'general';
+            }
+
+            $email = 'whatsapp+' . $emailBase . '+' . $sessionSlug . '@no-email.alestur.local';
+        }
+
         $existingRow = Lead::query()
             ->where('phone', '=', $displayPhone)
             ->where('channel', '=', 'whatsapp')
@@ -607,10 +627,17 @@ class LeadService
             'raw' => $payload,
         ];
 
-        $message = $this->buildWhatsAppNotes($leadName, $displayPhone, $botSession, $accepted, $lastMessage);
+        $message = $this->buildWhatsAppNotes(
+            $leadName,
+            $displayPhone,
+            $botSession,
+            $accepted,
+            $lastMessage
+        );
 
         if ($existing) {
             $oldMetadata = [];
+
             if (!empty($existing->metadata_json)) {
                 $oldMetadata = is_array($existing->metadata_json)
                     ? $existing->metadata_json
@@ -619,13 +646,16 @@ class LeadService
 
             $existing->update([
                 'full_name' => $existing->full_name ?: $leadName,
+                'email' => $existing->email ?: $email,
                 'phone' => $displayPhone,
                 'source_type' => 'contact',
                 'channel' => 'whatsapp',
                 'subject' => $existing->subject ?: 'Contacto externo / WhatsApp',
                 'message' => $message,
                 'whatsapp_opt_in' => $accepted === true ? 1 : (int) ($existing->whatsapp_opt_in ?? 0),
-                'consent_accepted_at' => $accepted === true ? date('Y-m-d H:i:s') : $existing->consent_accepted_at,
+                'consent_accepted_at' => $accepted === true
+                    ? ($existing->consent_accepted_at ?: date('Y-m-d H:i:s'))
+                    : $existing->consent_accepted_at,
                 'last_contact_at' => date('Y-m-d H:i:s'),
                 'metadata_json' => json_encode(array_merge($oldMetadata, $metadata), JSON_UNESCAPED_UNICODE),
             ]);
@@ -636,7 +666,7 @@ class LeadService
             $lead = Lead::create([
                 'customer_id' => null,
                 'full_name' => $leadName,
-                'email' => $payload['email'] ?? null,
+                'email' => $email,
                 'phone' => $displayPhone,
                 'source_type' => 'contact',
                 'channel' => 'whatsapp',
@@ -664,7 +694,9 @@ class LeadService
 
         $interactionBody = $lastMessage !== ''
             ? $lastMessage
-            : ($accepted === true ? 'Aceptó política de tratamiento de datos personales por WhatsApp.' : 'Registro desde WhatsApp.');
+            : ($accepted === true
+                ? 'Aceptó política de tratamiento de datos personales por WhatsApp.'
+                : 'Registro desde WhatsApp.');
 
         LeadInteraction::create([
             'lead_id' => (int) $lead->id,
@@ -705,5 +737,4 @@ class LeadService
 
         return implode("\n", $lines);
     }
-
 }
