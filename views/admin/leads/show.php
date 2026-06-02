@@ -174,12 +174,37 @@ $canConvert = in_array((string) ($lead->source_type ?? ''), ['package', 'tickets
       <div style="margin-top:16px;">
         <strong>Metadatos adicionales</strong>
         <div style="padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;margin-top:8px;">
+
+          <?php
+          $renderMetadataValue = function ($value): string {
+            if (is_bool($value)) {
+              return $value ? 'Sí' : 'No';
+            }
+
+            if (is_array($value) || is_object($value)) {
+              return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+            }
+
+            if ($value === null) {
+              return '';
+            }
+
+            return (string) $value;
+          };
+          ?>
+
           <?php foreach ($showMetadata as $key => $value): ?>
-            <div style="margin-bottom:6px;">
+            <div style="margin-bottom:10px;">
               <strong><?= e((string) $key) ?>:</strong>
-              <?= e(is_bool($value) ? ($value ? 'Sí' : 'No') : (string) $value) ?>
+
+              <?php if (is_array($value) || is_object($value)): ?>
+                <pre style="margin-top:6px;padding:10px;border-radius:10px;background:#f8fafc;border:1px solid #e5e7eb;white-space:pre-wrap;font-size:12px;overflow:auto;"><?= e($renderMetadataValue($value)) ?></pre>
+              <?php else: ?>
+                <?= e($renderMetadataValue($value)) ?>
+              <?php endif; ?>
             </div>
           <?php endforeach; ?>
+
         </div>
       </div>
     <?php endif; ?>
