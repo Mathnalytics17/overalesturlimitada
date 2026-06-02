@@ -10,7 +10,6 @@ $filters = $filters ?? [];
 $editingUser = $editingUser ?? null;
 $currentAdminId = (int) ($currentAdminId ?? 0);
 $currentAdmin = $currentAdmin ?? null;
-$pagination = $pagination ?? [];
 
 $message = '';
 $messageType = '';
@@ -56,8 +55,8 @@ function field_error(array $errors, string $field): string
 
   <div class="sep"></div>
 
-  <form method="get" action="/admin/users" class="admin-filter-grid" style="margin-bottom:18px;">
-    <div class="admin-filter-field">
+  <form method="get" action="/admin/users" style="display:grid;grid-template-columns:1fr 1fr 1.4fr auto;gap:12px;align-items:end;margin-bottom:18px;">
+    <div>
       <label style="display:block;margin-bottom:6px;font-weight:600;">Estado</label>
       <select name="status" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;">
         <option value="">Todos</option>
@@ -74,7 +73,7 @@ function field_error(array $errors, string $field): string
       </select>
     </div>
 
-    <div class="admin-filter-field">
+    <div>
       <label style="display:block;margin-bottom:6px;font-weight:600;">Rol</label>
       <select name="role" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;">
         <option value="">Todos</option>
@@ -83,7 +82,7 @@ function field_error(array $errors, string $field): string
       </select>
     </div>
 
-    <div class="admin-filter-field full">
+    <div>
       <label style="display:block;margin-bottom:6px;font-weight:600;">Buscar</label>
       <input
         type="text"
@@ -94,13 +93,12 @@ function field_error(array $errors, string $field): string
       >
     </div>
 
-    <div class="admin-filter-actions">
+    <div>
       <button class="btn primary" type="submit">Filtrar</button>
-      <a class="btn" href="/admin/users" style="text-decoration:none;">Limpiar</a>
     </div>
   </form>
 
-  <div class="table-wrap keep-scroll">
+  <div class="table-wrap">
     <table>
       <thead>
         <tr>
@@ -133,15 +131,15 @@ function field_error(array $errors, string $field): string
             $isCurrentUser = (int) ($user->id ?? 0) === $currentAdminId;
           ?>
           <tr>
-            <td data-label="Nombre"><?= e((string) ($user->first_name ?? '')) ?></td>
-            <td data-label="Apellido"><?= e((string) ($user->last_name ?? '')) ?></td>
-            <td data-label="Correo"><?= e((string) ($user->email ?? '')) ?></td>
-            <td data-label="Numero"><?= e((string) ($user->phone ?? '')) ?></td>
-            <td data-label="Rol"><?= e(method_exists($user, 'roleLabel') ? $user->roleLabel() : (string) ($user->role ?? '')) ?></td>
-            <td data-label="Status"><span class="badge <?= e($badgeClass) ?>"><?= e($statusLabel) ?></span></td>
-            <td data-label="Ultimo acceso"><?= !empty($user->last_login_at) ? e((string) $user->last_login_at) : 'Nunca' ?></td>
-            <td data-label="Acciones">
-              <div class="row-actions">
+            <td><?= e((string) ($user->first_name ?? '')) ?></td>
+            <td><?= e((string) ($user->last_name ?? '')) ?></td>
+            <td><?= e((string) ($user->email ?? '')) ?></td>
+            <td><?= e((string) ($user->phone ?? '')) ?></td>
+            <td><?= e(method_exists($user, 'roleLabel') ? $user->roleLabel() : (string) ($user->role ?? '')) ?></td>
+            <td><span class="badge <?= e($badgeClass) ?>"><?= e($statusLabel) ?></span></td>
+            <td><?= !empty($user->last_login_at) ? e((string) $user->last_login_at) : 'Nunca' ?></td>
+            <td>
+              <div class="row-actions" style="display:flex;gap:8px;align-items:center;">
                 <a class="chip" title="Editar" href="/admin/users/edit?id=<?= (int) $user->id ?>">Editar</a>
 
                 <?php if (!$isCurrentUser): ?>
@@ -176,7 +174,7 @@ function field_error(array $errors, string $field): string
 
         <?php if ($users === []): ?>
           <tr>
-            <td colspan="8" data-label="Estado" style="padding:18px;text-align:center;color:#64748b;">
+            <td colspan="8" style="padding:18px;text-align:center;color:#64748b;">
               No hay usuarios registrados con esos filtros.
             </td>
           </tr>
@@ -184,8 +182,6 @@ function field_error(array $errors, string $field): string
       </tbody>
     </table>
   </div>
-
-  <?= render_pagination($pagination, $filters) ?>
 </div>
 
 <?php if ($canCreateUsers || $isEditing): ?>

@@ -14,7 +14,7 @@ class AuthController extends Controller
         return $this->render('users/login', [
             'errors' => [],
             'message' => null,
-        ],'mainUserLayout');
+        ]);
     }
 
     public function login()
@@ -75,7 +75,7 @@ class AuthController extends Controller
             'old' => [
                 'email' => $_POST['email'] ?? '',
             ],
-        ],'mainUserLayout');
+        ]);
     }
 
     public function logout()

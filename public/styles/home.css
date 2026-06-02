@@ -10,9 +10,7 @@
   --radius: 24px;
 }
 
-*,
-*::before,
-*::after {
+* {
   box-sizing: border-box;
 }
 
@@ -25,7 +23,6 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--text);
   background: var(--bg);
-  overflow-x: hidden;
 }
 
 img {
@@ -33,21 +30,7 @@ img {
   display: block;
 }
 
-a {
-  text-decoration: none;
-}
-
 .home-page {
-  width: 100%;
-  overflow: hidden;
-}
-
-.hero-home,
-.home-services-preview,
-.home-carrousel,
-.frequent-questions,
-.travel-experiences,
-.home-cta {
   width: 100%;
 }
 
@@ -77,22 +60,13 @@ a {
   z-index: 1;
 }
 
-.hero-content,
-.home-services-preview,
-.home-carrousel,
-.frequent-questions,
-.travel-experiences,
-.home-cta {
-  width: min(1200px, calc(100% - 40px));
-  margin-left: auto;
-  margin-right: auto;
-}
-
 .hero-content {
   position: relative;
   z-index: 2;
+  width: min(1200px, calc(100% - 40px));
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  grid-template-columns: 1.2fr .8fr;
   gap: 36px;
   align-items: center;
   padding: 70px 0;
@@ -107,7 +81,7 @@ a {
 .section-kicker {
   display: inline-block;
   font-size: 13px;
-  letter-spacing: 0.12em;
+  letter-spacing: .12em;
   text-transform: uppercase;
   font-weight: 800;
 }
@@ -128,7 +102,7 @@ a {
   margin: 0 0 28px;
   font-size: 18px;
   line-height: 1.75;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255,255,255,.9);
   max-width: 640px;
 }
 
@@ -148,8 +122,7 @@ a {
   border-radius: 14px;
   text-decoration: none;
   font-weight: 800;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-  border: 1px solid transparent;
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
 }
 
 .btn:hover {
@@ -159,7 +132,7 @@ a {
 .btn-primary {
   background: var(--primary);
   color: #fff;
-  box-shadow: 0 12px 30px rgba(225, 29, 72, 0.25);
+  box-shadow: 0 12px 30px rgba(225, 29, 72, .25);
 }
 
 .btn-primary:hover {
@@ -167,29 +140,19 @@ a {
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255,255,255,.12);
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255,255,255,.18);
   backdrop-filter: blur(6px);
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255,255,255,.18);
 }
 
 .btn-light {
   background: #fff;
   color: var(--primary-dark);
-}
-
-.btn-outline-light {
-  background: transparent;
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.45);
-}
-
-.btn-outline-light:hover {
-  background: rgba(255, 255, 255, 0.12);
 }
 
 .hero-badges {
@@ -203,21 +166,20 @@ a {
   align-items: center;
   padding: 10px 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.15);
   color: #fff;
   font-size: 14px;
   font-weight: 700;
 }
 
 .hero-card {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(255,255,255,.6);
   border-radius: 28px;
   padding: 28px;
   box-shadow: var(--shadow);
   backdrop-filter: blur(10px);
-  width: 100%;
   max-width: 420px;
   justify-self: end;
 }
@@ -242,6 +204,15 @@ a {
 }
 
 /* SECTIONS */
+.home-services-preview,
+.frequent-questions,
+.home-cta,
+.home-carrousel {
+  width: min(1200px, calc(100% - 40px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .home-services-preview {
   padding: 90px 0 20px;
 }
@@ -253,10 +224,6 @@ a {
 
 .frequent-questions {
   padding: 20px 0 90px;
-}
-
-.travel-experiences {
-  padding: 10px 0 90px;
 }
 
 .section-heading {
@@ -273,10 +240,6 @@ a {
 .section-kicker {
   color: var(--primary);
   margin-bottom: 12px;
-}
-
-.section-kicker-light {
-  color: rgba(255, 255, 255, 0.88);
 }
 
 .section-heading h2 {
@@ -296,7 +259,7 @@ a {
 /* SERVICE GRID */
 .service-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 }
 
@@ -306,7 +269,7 @@ a {
   border-radius: var(--radius);
   padding: 28px;
   box-shadow: 0 12px 35px rgba(15, 23, 42, 0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
 
 .service-card:hover {
@@ -353,7 +316,7 @@ a {
 /* FAQ */
 .question-cards-container {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 24px;
 }
 
@@ -364,7 +327,7 @@ a {
   padding: 28px;
   text-align: left;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform .2s ease, box-shadow .2s ease;
 }
 
 .question-card:hover {
@@ -375,71 +338,6 @@ a {
 .featured-card {
   background: linear-gradient(180deg, #fff1f2 0%, #ffffff 100%);
   border-color: #f8c7d2;
-}
-
-/* EXPERIENCIAS */
-.experiences-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-}
-
-.experience-card {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.experience-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.09);
-  border-color: #f3b2c1;
-}
-
-.experience-image {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-  background: #f1f5f9;
-}
-
-.experience-body {
-  padding: 18px;
-}
-
-.experience-rating {
-  font-weight: 900;
-  color: #b61f2a;
-  margin-bottom: 8px;
-  font-size: 18px;
-}
-
-.experience-title {
-  font-size: 20px;
-  font-weight: 900;
-  margin-bottom: 10px;
-  color: #0f172a;
-  line-height: 1.3;
-}
-
-.experience-text {
-  color: #475569;
-  line-height: 1.7;
-  font-size: 15px;
-}
-
-.experience-author {
-  margin-top: 12px;
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.experiences-actions {
-  margin-top: 20px;
 }
 
 /* CTA */
@@ -456,7 +354,7 @@ a {
   justify-content: space-between;
   align-items: center;
   gap: 24px;
-  box-shadow: 0 18px 45px rgba(190, 18, 60, 0.22);
+  box-shadow: 0 18px 45px rgba(190, 18, 60, .22);
 }
 
 .home-cta-box h2 {
@@ -467,7 +365,7 @@ a {
 
 .home-cta-box p {
   margin: 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255,255,255,.9);
   line-height: 1.75;
   max-width: 680px;
 }
@@ -491,15 +389,11 @@ a {
   }
 
   .service-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr 1fr;
   }
 
   .question-cards-container {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .experiences-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr 1fr;
   }
 
   .home-cta-box {
@@ -509,40 +403,21 @@ a {
 }
 
 @media (max-width: 768px) {
-  .hero-content,
-  .home-services-preview,
-  .home-carrousel,
-  .frequent-questions,
-  .travel-experiences,
-  .home-cta {
-    width: min(100% - 32px, 1200px);
-  }
-
   .hero-home {
     min-height: auto;
   }
 
   .hero-content {
+    width: min(100% - 32px, 1200px);
     padding: 56px 0;
-    grid-template-columns: 1fr;
-  }
-
-  .hero-text {
-    max-width: 100%;
   }
 
   .hero-text p {
     font-size: 16px;
   }
 
-  .hero-card {
-    width: 100%;
-    justify-self: stretch;
-  }
-
   .service-grid,
-  .question-cards-container,
-  .experiences-grid {
+  .question-cards-container {
     grid-template-columns: 1fr;
   }
 
@@ -555,8 +430,10 @@ a {
     margin-bottom: 70px;
   }
 
-  .frequent-questions,
-  .travel-experiences,
+  .frequent-questions {
+    padding-bottom: 70px;
+  }
+
   .home-cta {
     padding-bottom: 70px;
   }
@@ -572,10 +449,6 @@ a {
 
   .hero-badges span {
     font-size: 13px;
-  }
-
-  .experience-image {
-    height: 200px;
   }
 }
 
@@ -594,22 +467,9 @@ a {
   }
 
   .service-card,
-  .question-card,
-  .experience-card {
-    border-radius: 22px;
-  }
-
-  .service-card,
   .question-card {
     padding: 22px;
-  }
-
-  .experience-body {
-    padding: 16px;
-  }
-
-  .experience-image {
-    height: 180px;
+    border-radius: 22px;
   }
 
   .btn {

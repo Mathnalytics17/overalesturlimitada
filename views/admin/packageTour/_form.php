@@ -339,10 +339,6 @@ $currentStatus = (string)($getRawValue('status', 'draft') ?: 'draft');
   max-width: 360px;
 }
 
-.package-wizard .wizard-sidebar .field {
-  min-width: 0;
-}
-
 .package-wizard .check-grid {
   display: flex;
   flex-wrap: wrap;
@@ -495,11 +491,6 @@ $currentStatus = (string)($getRawValue('status', 'draft') ?: 'draft');
     position: static;
   }
 
-  .package-wizard .step-nav {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .package-wizard .preview-summary,
   .package-wizard .media-grid {
     grid-template-columns: 1fr;
@@ -512,75 +503,18 @@ $currentStatus = (string)($getRawValue('status', 'draft') ?: 'draft');
     grid-template-columns: 1fr;
   }
 
-  .package-wizard .wizard-sidebar,
-  .package-wizard .wizard-main {
-    padding: 18px;
-    border-radius: 18px;
-  }
-
-  .package-wizard .wizard-head h2 {
-    font-size: 24px;
-  }
-
-  .package-wizard .status-actions,
-  .package-wizard .wizard-footer,
-  .package-wizard .footer-left,
-  .package-wizard .footer-right,
-  .package-wizard .block-title {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .package-wizard .status-actions > *,
-  .package-wizard .wizard-footer > *,
-  .package-wizard .footer-left > *,
-  .package-wizard .footer-right > *,
-  .package-wizard .block-title > .add-btn,
-  .package-wizard .block-title > .template-select {
-    width: 100%;
-    max-width: none;
-  }
-
-  .package-wizard .repeat-item {
-    grid-template-columns: 1fr;
-  }
-
-  .package-wizard .media-grid,
-  .package-wizard .preview-summary {
-    gap: 16px;
-  }
-
   .package-wizard .gallery-grid {
     grid-template-columns: 1fr 1fr;
   }
 }
 
 @media (max-width: 560px) {
-  .package-wizard {
-    gap: 16px;
-  }
-
-  .package-wizard .step-nav {
-    grid-template-columns: 1fr;
-  }
-
   .package-wizard .gallery-grid {
     grid-template-columns: 1fr;
   }
 
   .package-wizard .wizard-main {
     padding: 18px;
-  }
-
-  .package-wizard .step-link,
-  .package-wizard .btn-main,
-  .package-wizard .btn-outline,
-  .package-wizard .btn-publish,
-  .package-wizard .add-btn,
-  .package-wizard .mini-btn,
-  .package-wizard .action-btn {
-    width: 100%;
-    justify-content: center;
   }
 }
 </style>

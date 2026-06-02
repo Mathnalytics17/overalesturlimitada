@@ -1,264 +1,94 @@
-.topbar {
-  width: 100%;
-  background: crimson;
-  position: relative;
-  z-index: 1000;
+.topbar{
+  background-color: crimson;
 }
 
-.navbar {
-  width: 100%;
+/* el nav */
+.navbar{
   background: crimson;
 }
 
-.navbar-container {
-  width: min(1200px, calc(100% - 32px));
-  margin: 0 auto;
-  min-height: 72px;
+.navbar-container{
+  width: 100%;
+  padding: 16px 32px;   /* <- más alto y un poco más “ancho” lateral */
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 18px;
-}
-
-.brand-home {
-  color: #fff;
-  font-size: 18px;
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  flex-shrink: 0;
 }
 
-.nav-toggle {
-  display: none;
-  width: 44px;
-  height: 44px;
-  border: 0;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  flex-direction: column;
-  justify-content: center;
-  gap: 5px;
-}
-
-.nav-toggle span {
-  display: block;
-  width: 24px;
-  height: 2px;
-  margin: 0 auto;
-  background: #fff;
-  border-radius: 999px;
-}
-
-.nav-menu {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex: 1;
-}
-
-.nav-links {
-  list-style: none;
+/* lista horizontal sin bullets */
+.navbar-container ul{
+  list-style: none;            /* quita puntos */
   margin: 0;
   padding: 0;
+  display: flex;               /* pone los li en fila */
+  gap: 24px;
+  align-items: center;
+}
+
+/* bloque derecho (globo + bandera) en fila */
+.navbar-container > div:last-child{
   display: flex;
   align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.nav-links li {
-  list-style: none;
-}
-
-.nav-links a,
-.dropbtn,
-.user-btn,
-.brand-home,
-.navbar i {
+/* icono */
+.navbar-container i{
   color: #fff;
+  font-size: 18px;
 }
 
-.nav-links a {
-  text-decoration: none;
-  font-size: 14px;
-  white-space: nowrap;
+/* bandera */
+.image-colombia{
+  height: 20px;
+  width: 28px;                 /* bandera se ve mejor rectangular */
+  display: block;
 }
 
-.dropbtn {
+/* ===== DROPDOWN ESTABLE (hover + click) ===== */
+.dropdown{
+  position: relative;
+}
+
+/* botón */
+.dropbtn{
   background: transparent;
   border: 0;
+  color: #fff;
   cursor: pointer;
   font: inherit;
   padding: 8px 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
 
-.caret {
-  font-size: 12px;
-}
-
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-shrink: 0;
-}
-
-.image-colombia {
-  width: 28px;
-  height: 20px;
-  object-fit: cover;
-  display: block;
-}
-
-.dropdown {
-  position: relative;
-}
-
-.dropdown-menu,
-.user-menu {
+/* menú oculto */
+.dropdown > .dropdown-menu{
   display: none;
   position: absolute;
-  top: calc(100% + 10px);
   left: 0;
-  min-width: 220px;
+  top: 100%;          /* pegado al botón */
+  margin-top: 0;      /* SIN separación que cree hueco */
+  min-width: 180px;
+
+  list-style: none;
+  padding: 8px;
   background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-  padding: 10px 0;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.2);
   z-index: 999;
 }
 
-.user-dropdown {
-  position: relative;
-}
+/* show: hover o click */
+.dropdown:hover > .dropdown-menu,
 
-.user-menu {
-  left: auto;
-  right: 0;
-  min-width: 180px;
-  padding: 10px;
-}
 
-.dropdown.open .dropdown-menu,
-.user-dropdown.open .user-menu {
+/* links */
+.dropdown-menu a{
   display: block;
-}
-
-.dropdown-menu li {
-  list-style: none;
-}
-
-.dropdown-menu a,
-.user-menu a {
-  display: block;
-  padding: 10px 14px;
+  padding: 10px 12px;
   text-decoration: none;
   color: #111;
+  border-radius: 8px;
 }
-
-.dropdown-menu a:hover,
-.user-menu a:hover {
-  background: #f5f5f5;
-  color: #b61f2a;
-}
-
-.user-btn {
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  font-size: 18px;
-  padding: 0;
-}
-
-.logout-form {
-  margin: 0;
-}
-
-.logout-btn {
-  width: 100%;
-  text-align: left;
-  padding: 10px 14px;
-  background: none;
-  border: 0;
-  cursor: pointer;
-  color: #b91c1c;
-  font: inherit;
-}
-
-@media (max-width: 900px) {
-  .navbar-container {
-    width: min(100% - 24px, 1200px);
-    min-height: 64px;
-  }
-
-  .nav-toggle {
-    display: flex;
-  }
-
-  .nav-menu {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 12px;
-    right: 12px;
-    background: crimson;
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-  }
-
-  .nav-menu.open {
-    display: flex;
-  }
-
-  .nav-links {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 14px;
-    width: 100%;
-  }
-
-  .nav-links li,
-  .nav-links a,
-  .dropbtn {
-    width: 100%;
-  }
-
-  .dropbtn {
-    justify-content: space-between;
-    padding: 0;
-  }
-
-  .nav-actions {
-    width: 100%;
-    justify-content: space-between;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.16);
-  }
-
-  .dropdown-menu,
-  .user-menu {
-    position: static;
-    display: none;
-    margin-top: 10px;
-    box-shadow: none;
-    border-radius: 10px;
-    width: 100%;
-  }
-
-  .dropdown.open .dropdown-menu,
-  .user-dropdown.open .user-menu {
-    display: block;
-  }
+.dropdown-menu a:hover{
+  background: #f2f2f2;
 }

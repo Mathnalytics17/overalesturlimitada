@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="/public/styles/vendor/bootstrap.min.css">
-<link rel="stylesheet" href="/public//styles/vendor/all.min.css">
-<script src="/public/js/vendor/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="/styles/vendor/bootstrap.min.css">
+<link rel="stylesheet" href="/styles/vendor/all.min.css">
+<script src="/js/vendor/bootstrap.bundle.min.js"></script>
 
   <!-- CSS global (componentes) -->
-  <link rel="stylesheet" href="/public/styles/header.css">
-  <link rel="stylesheet" href="/public/styles/footer.css">
+  <link rel="stylesheet" href="/styles/header.css">
+  <link rel="stylesheet" href="/styles/footer.css">
 
   <!-- CSS por página (opcional): string o array -->
   <?php if (!empty($pageCss)): ?>

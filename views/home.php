@@ -1,9 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio | Alestur</title>
+    <link rel="stylesheet" href="/styles/home.css">
+</head>
+<body>
+
 <main class="home-page">
 
     <section class="hero-home">
         <div class="hero-overlay"></div>
 
-        <img class="hero-bg" src="/img/home/image (28).png" alt="Paisaje inspirado en Santa Marta, Magdalena">
+        <img class="hero-bg" src="/img/home/image (28).png" alt="Experiencias de viaje Alestur">
 
         <div class="hero-content">
             <div class="hero-text">
@@ -11,7 +21,7 @@
                 <h1>Viajes diseñados con confianza, respaldo y atención humana</h1>
                 <p>
                     En Alestur te ayudamos a planear cada detalle de tu viaje:
-                    Tiquetes, paquetes, servicios complementarios y asesoría
+                    tiquetes, paquetes, servicios complementarios y asesoría
                     personalizada para que vivas una experiencia tranquila y memorable.
                 </p>
 
@@ -68,7 +78,7 @@
             <article class="service-card">
                 <div class="service-icon"><i class="fa-solid fa-passport"></i></div>
                 <h3>Servicios extra</h3>
-                <p>Visas, asistencias médicas, simcards y otros apoyos para tu viaje.</p>
+                <p>Pasaportes, visas, asistencias médicas, simcards y otros apoyos para tu viaje.</p>
                 <a href="/extra-services">Explorar</a>
             </article>
         </div>
@@ -134,81 +144,74 @@
     </section>
 
     <?php
-    $experiences = $experiences ?? [];
+$experiences = $experiences ?? [];
 
-    function experience_asset_url(?string $path, string $fallback = '/img/default-experience.jpg'): string
-    {
-        $path = trim((string)$path);
+function experience_asset_url(?string $path, string $fallback = '/img/default-experience.jpg'): string
+{
+    $path = trim((string)$path);
 
-        if ($path === '') {
-            return $fallback;
-        }
-
-        if (preg_match('#^https?://#i', $path)) {
-            return $path;
-        }
-
-        $path = str_replace('\\', '/', $path);
-
-        return '/' . ltrim($path, '/');
+    if ($path === '') {
+        return $fallback;
     }
-    ?>
 
-    <?php if (!empty($experiences)): ?>
-    <section class="travel-experiences">
-        <div class="section-heading">
-            <span class="section-kicker">Experiencias reales</span>
-            <h2>Experiencias de viajeros</h2>
-            <p>
-                Historias y valoraciones de clientes que confiaron en Alestur para vivir
-                viajes memorables, cómodos y bien acompañados.
-            </p>
+    if (preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+
+    $path = str_replace('\\', '/', $path);
+
+    return '/' . ltrim($path, '/');
+}
+?>
+
+<?php if (!empty($experiences)): ?>
+<section class="section">
+  <h2>Experiencias de viajeros</h2>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+    <?php foreach ($experiences as $exp): ?>
+      <?php
+        $coverPath = experience_asset_url($exp->cover_image->image_path ?? null);
+        $excerpt = mb_strimwidth((string)($exp->story ?? ''), 0, 180, '...');
+      ?>
+      <article class="card" style="overflow:hidden;padding:0;">
+        <img
+          src="<?= htmlspecialchars($coverPath) ?>"
+          alt="<?= htmlspecialchars($exp->title ?? '') ?>"
+          style="width:100%;height:190px;object-fit:cover;display:block;background:#f1f5f9;"
+        >
+
+        <div style="padding:16px;">
+          <div style="font-weight:900;color:#b61f2a;margin-bottom:8px;">
+            <?= str_repeat('★', max(1, min(5, (int)($exp->rating ?? 5)))) ?>
+          </div>
+
+          <div style="font-size:18px;font-weight:900;margin-bottom:8px;color:#0f172a;">
+            <?= htmlspecialchars($exp->title ?? '') ?>
+          </div>
+
+          <div style="color:#475569;line-height:1.7;">
+            <?= nl2br(htmlspecialchars($excerpt)) ?>
+          </div>
+
+          <div style="margin-top:12px;color:#64748b;font-size:14px;">
+            <?= htmlspecialchars($exp->display_name ?: $exp->customer_name ?: 'Cliente') ?>
+          </div>
         </div>
+      </article>
+    <?php endforeach; ?>
+  </div>
 
-        <div class="experiences-grid">
-            <?php foreach ($experiences as $exp): ?>
-                <?php
-                    $coverPath = experience_asset_url($exp->cover_image->image_path ?? null);
-                    $excerpt = mb_strimwidth((string)($exp->story ?? ''), 0, 180, '...');
-                ?>
-                <article class="experience-card">
-                    <img
-                        class="experience-image"
-                        src="<?= htmlspecialchars($coverPath) ?>"
-                        alt="<?= htmlspecialchars($exp->title ?? '') ?>"
-                    >
-
-                    <div class="experience-body">
-                        <div class="experience-rating">
-                            <?= str_repeat('★', max(1, min(5, (int)($exp->rating ?? 5)))) ?>
-                        </div>
-
-                        <div class="experience-title">
-                            <?= htmlspecialchars($exp->title ?? '') ?>
-                        </div>
-
-                        <div class="experience-text">
-                            <?= nl2br(htmlspecialchars($excerpt)) ?>
-                        </div>
-
-                        <div class="experience-author">
-                            <?= htmlspecialchars($exp->display_name ?: $exp->customer_name ?: 'Cliente') ?>
-                        </div>
-                    </div>
-                </article>
-            <?php endforeach; ?>
-        </div>
-
-        <div class="experiences-actions">
-            <a href="/experiences" class="btn btn-primary">Ver más experiencias</a>
-        </div>
-    </section>
-    <?php endif; ?>
+  <div style="margin-top:16px;">
+    <a href="/experiences" class="btn btn-secondary">Ver más experiencias</a>
+  </div>
+</section>
+<?php endif; ?>
 
     <section class="home-cta">
         <div class="home-cta-box">
             <div>
-                <span class="section-kicker section-kicker-light">Empieza hoy</span>
+                <span class="section-kicker">Empieza hoy</span>
                 <h2>Planea tu próximo viaje con respaldo profesional</h2>
                 <p>
                     Estamos listos para ayudarte a elegir el servicio ideal y acompañarte en cada paso.
@@ -216,10 +219,13 @@
             </div>
 
             <div class="home-cta-actions">
-                <a href="/contact" class="btn btn-light">Contáctanos</a>
-                <a href="/packagesTourist" class="btn btn-outline-light">Ver destinos</a>
+                <a href="/contact" class="btn btn-primary">Contáctanos</a>
+                <a href="/packagesTourist" class="btn btn-light">Ver destinos</a>
             </div>
         </div>
     </section>
 
 </main>
+
+</body>
+</html>

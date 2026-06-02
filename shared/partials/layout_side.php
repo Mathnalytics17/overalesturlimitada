@@ -7,9 +7,6 @@ $user_role = $currentAdmin->role ?? 'Administrador';
 <aside class="sidebar">
   <div class="brand">
     <div class="logo">OA</div>
-    <button type="button" class="mobile-nav-close" id="closeSidebar" aria-label="Cerrar menu">
-      <span aria-hidden="true">&times;</span>
-    </button>
     <div class="brand-text">
       <div class="brand-title">Over Alestur</div>
       <div class="brand-sub">Admin Panel</div>
@@ -30,6 +27,11 @@ $user_role = $currentAdmin->role ?? 'Administrador';
     <a class="<?= $active === 'sales' ? 'active' : ''; ?>" href="/admin/sales">
       <i data-lucide="line-chart"></i>
       <span class="nav-text">Seguimiento de ventas</span>
+    </a>
+
+    <a class="<?= $active === 'chatbot' ? 'active' : ''; ?>" href="/admin/chatbot">
+      <i data-lucide="message-circle"></i>
+      <span class="nav-text">Chatbot WhatsApp</span>
     </a>
 
 <?php $currentAdmin = \app\Core\AdminAuth::user(); ?>
@@ -62,7 +64,6 @@ $user_role = $currentAdmin->role ?? 'Administrador';
     </div>
   </div>
 </aside>
-<button type="button" class="sidebar-scrim" id="sidebarScrim" aria-label="Cerrar menu lateral"></button>
 
 <main class="main">
   <header class="topbar">

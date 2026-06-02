@@ -34,8 +34,6 @@ class Response
             return;
         }
 
-        header_remove('X-Powered-By');
-
         $csp = [
             "default-src 'self'",
             "base-uri 'self'",
@@ -63,20 +61,12 @@ class Response
         $this->header('Cross-Origin-Opener-Policy', 'same-origin');
         $this->header('Cross-Origin-Resource-Policy', 'same-site');
         $this->header('X-Permitted-Cross-Domain-Policies', 'none');
+        $this->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        $this->header('Pragma', 'no-cache');
+        $this->header('Expires', '0');
 
         if (is_https()) {
             $this->header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
-    }
-
-    public function applyNoCacheHeaders(): void
-    {
-        if (headers_sent()) {
-            return;
-        }
-
-        $this->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
-        $this->header('Pragma', 'no-cache');
-        $this->header('Expires', '0');
     }
 }

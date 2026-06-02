@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/../services/ChatbotCrmApiClient.php';
+require_once __DIR__ . '/../controllers/admin/chatbot/ChatbotController.php';
+
 use app\Controllers\admin\packageTour\PackageTourController;
 use app\Controllers\admin\leads\LeadController;
 use app\Controllers\admin\users\AuthController as AdminAuthController;
@@ -53,6 +56,13 @@ $app->router->get('/admin/pqrs/attachment', [\app\Controllers\admin\pqrs\PqrsCon
 $app->router->post('/admin/leads/note', [LeadController::class, 'note'], [AuthAdminMiddleware::class]);
 $app->router->post('/admin/leads/task', [LeadController::class, 'task'], [AuthAdminMiddleware::class]);
 $app->router->post('/admin/leads/task/complete', [LeadController::class, 'completeTask'], [AuthAdminMiddleware::class]);
+
+// Chatbot WhatsApp / CRM
+$app->router->get('/admin/chatbot', [\app\Controllers\admin\chatbot\ChatbotController::class, 'index'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/chatbot/show', [\app\Controllers\admin\chatbot\ChatbotController::class, 'show'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/chatbot/export', [\app\Controllers\admin\chatbot\ChatbotController::class, 'export'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/chatbot/export-messages', [\app\Controllers\admin\chatbot\ChatbotController::class, 'exportMessages'], [AuthAdminMiddleware::class]);
+
 $app->router->get('/admin/trazabilitySells', [SiteController::class, 'admin'], [AuthAdminMiddleware::class]);
 
 /* admin auth */

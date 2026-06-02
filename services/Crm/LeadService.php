@@ -304,26 +304,6 @@ class LeadService
         if (!empty($metadata['oneWay'])) {
             $parts[] = 'Trayecto: solo ida.';
         }
-
-        if (!empty($metadata['passengerSummary'])) {
-            $parts[] = 'Viajeros: ' . trim((string) $metadata['passengerSummary']) . '.';
-        }
-
-        if (!empty($metadata['travelWithPet'])) {
-            $parts[] = 'Viaje con mascota: si.';
-        }
-
-        if (!empty($metadata['needWheelchair'])) {
-            $parts[] = 'Requiere silla de ruedas: si.';
-        }
-
-        if (!empty($metadata['sportsEquipment'])) {
-            $parts[] = 'Lleva articulo deportivo: si.';
-        }
-
-        if (!empty($metadata['specialRequestNotes'])) {
-            $parts[] = 'Detalles adicionales: ' . trim((string) $metadata['specialRequestNotes']) . '.';
-        }
     } elseif ((string) $lead->source_type === 'package') {
         $parts[] = 'Quiero recibir información sobre un paquete turístico.';
 
@@ -375,22 +355,6 @@ class LeadService
 
         if (!empty($metadata['city'])) {
             $parts[] = 'Ciudad destino: ' . trim((string) $metadata['city']) . '.';
-        }
-
-        if (!empty($metadata['passengerSummary'])) {
-            $parts[] = 'Viajeros: ' . trim((string) $metadata['passengerSummary']) . '.';
-        }
-
-        if (!empty($metadata['travelWithPet'])) {
-            $parts[] = 'Viaje con mascota: si.';
-        }
-
-        if (!empty($metadata['needWheelchair'])) {
-            $parts[] = 'Requiere silla de ruedas: si.';
-        }
-
-        if (!empty($metadata['sportsEquipment'])) {
-            $parts[] = 'Lleva articulo deportivo: si.';
         }
     } elseif ((string) $lead->source_type === 'package') {
         $parts[] = 'Solicitud: paquete turístico.';
@@ -474,10 +438,6 @@ class LeadService
     }
 
     if ($message === '' && $sourceType === 'tickets') {
-        $adults = max(1, (int) ($payload['adults'] ?? 1));
-        $children = max(0, (int) ($payload['children'] ?? 0));
-        $infants = max(0, (int) ($payload['infants'] ?? 0));
-        $passengerSummary = $this->buildPassengerSummary($adults, $children, $infants);
         $messageParts = [];
 
         if (!empty($payload['country'])) {
@@ -500,36 +460,11 @@ class LeadService
             $messageParts[] = 'Trayecto: solo ida';
         }
 
-        if ($passengerSummary !== '') {
-            $messageParts[] = 'Viajeros: ' . $passengerSummary;
-        }
-
-        if (!empty($payload['travelWithPet'])) {
-            $messageParts[] = 'Viaja con mascota: si';
-        }
-
-        if (!empty($payload['needWheelchair'])) {
-            $messageParts[] = 'Necesita silla de ruedas: si';
-        }
-
-        if (!empty($payload['sportsEquipment'])) {
-            $messageParts[] = 'Lleva articulo deportivo: si';
-        }
-
-        if (!empty($payload['specialRequestNotes'])) {
-            $messageParts[] = 'Detalles adicionales: ' . trim((string) $payload['specialRequestNotes']);
-        }
-
         $message = implode(' | ', $messageParts);
     }
 
-    $ticketAdults = max(1, (int) ($payload['adults'] ?? 1));
-    $ticketChildren = max(0, (int) ($payload['children'] ?? 0));
-    $ticketInfants = max(0, (int) ($payload['infants'] ?? 0));
-    $ticketPassengerSummary = $this->buildPassengerSummary($ticketAdults, $ticketChildren, $ticketInfants);
-
     if ($message === '' && $sourceType === 'extra_service' && $extraService) {
-        $message = 'Hola, quiero recibir información sobre ' . $extraService->displayTitle() . '.';
+        $message = 'Hola, quiero recibir información sobre ' . trim((string) $extraService->titulo) . '.';
     }
 
     if ($message === '' && $sourceType === 'package') {
@@ -568,16 +503,8 @@ class LeadService
             'departureDate' => $payload['departureDate'] ?? null,
             'returnDate' => $payload['returnDate'] ?? null,
             'oneWay' => !empty($payload['oneWay']),
-            'adults' => $sourceType === 'tickets' ? $ticketAdults : null,
-            'children' => $sourceType === 'tickets' ? $ticketChildren : null,
-            'infants' => $sourceType === 'tickets' ? $ticketInfants : null,
-            'passengerSummary' => $sourceType === 'tickets' ? $ticketPassengerSummary : null,
-            'travelWithPet' => $sourceType === 'tickets' ? !empty($payload['travelWithPet']) : null,
-            'needWheelchair' => $sourceType === 'tickets' ? !empty($payload['needWheelchair']) : null,
-            'sportsEquipment' => $sourceType === 'tickets' ? !empty($payload['sportsEquipment']) : null,
-            'specialRequestNotes' => $sourceType === 'tickets' ? trim((string) ($payload['specialRequestNotes'] ?? '')) : null,
             'extra_service_id' => !empty($payload['extra_service_id']) ? (int) $payload['extra_service_id'] : null,
-            'extra_service_title' => $extraService ? $extraService->displayTitle() : null,
+            'extra_service_title' => $extraService->titulo ?? null,
             'extra_service_slug' => $extraService->slug ?? null,
 
             'package_title' => $payload['package_title'] ?? null,
@@ -604,27 +531,15 @@ class LeadService
 
         if ($sourceType === 'tickets') {
             if (trim((string) ($payload['country'] ?? '')) === '') {
-                $errors['country'][] = 'Debes indicar un pais destino.';
+                $errors['country'][] = 'Debes seleccionar un país destino.';
             }
 
             if (trim((string) ($payload['city'] ?? '')) === '') {
-                $errors['city'][] = 'Debes indicar una ciudad destino.';
+                $errors['city'][] = 'Debes seleccionar una ciudad destino.';
             }
 
             if (trim((string) ($payload['departureDate'] ?? '')) === '') {
                 $errors['departureDate'][] = 'Debes ingresar la fecha de ida.';
-            }
-
-            if ((int) ($payload['adults'] ?? 0) < 1) {
-                $errors['adults'][] = 'Debe viajar al menos un adulto.';
-            }
-
-            if ((int) ($payload['children'] ?? 0) < 0) {
-                $errors['children'][] = 'La cantidad de ninos no puede ser negativa.';
-            }
-
-            if ((int) ($payload['infants'] ?? 0) < 0) {
-                $errors['infants'][] = 'La cantidad de bebes no puede ser negativa.';
             }
 
             if (empty($payload['oneWay']) && !empty($payload['returnDate']) && !empty($payload['departureDate'])) {
@@ -649,24 +564,146 @@ class LeadService
         return $errors;
     }
 
-    protected function buildPassengerSummary(int $adults, int $children, int $infants): string
+    
+
+
+    /**
+     * Crea o actualiza un lead proveniente del chatbot de WhatsApp.
+     * Regla: cuando el usuario acepta tratamiento de datos, entra como
+     * Contacto externo / WhatsApp en el módulo de clientes potenciales.
+     */
+    public function upsertFromWhatsApp(array $payload): array
     {
-        $parts = [];
+        $phone = trim((string) ($payload['phone'] ?? $payload['phone_number'] ?? ''));
+        $phoneJid = trim((string) ($payload['phone_jid'] ?? $payload['jid'] ?? ''));
+        $name = trim((string) ($payload['name'] ?? $payload['notify_name'] ?? $payload['pushname'] ?? ''));
+        $botSession = trim((string) ($payload['bot_session'] ?? $payload['session'] ?? ''));
+        $accepted = array_key_exists('accepted', $payload) ? (bool) $payload['accepted'] : null;
+        $lastMessage = trim((string) ($payload['last_message'] ?? $payload['message'] ?? ''));
 
-        if ($adults > 0) {
-            $parts[] = $adults . ' ' . ($adults === 1 ? 'adulto' : 'adultos');
+        if ($phone === '' && $phoneJid === '') {
+            throw new \InvalidArgumentException('El teléfono o JID de WhatsApp es obligatorio.');
         }
 
-        if ($children > 0) {
-            $parts[] = $children . ' ' . ($children === 1 ? 'nino' : 'ninos');
+        $displayPhone = $phone !== '' ? $phone : $phoneJid;
+        $leadName = $name !== '' ? $name : 'Contacto externo / WhatsApp';
+
+        $existingRow = Lead::query()
+            ->where('phone', '=', $displayPhone)
+            ->where('channel', '=', 'whatsapp')
+            ->first();
+
+        $existing = $existingRow ? new Lead($existingRow) : null;
+
+        $metadata = [
+            'source' => 'chatbot_whatsapp',
+            'bot_session' => $botSession,
+            'phone' => $phone,
+            'phone_jid' => $phoneJid,
+            'accepted_policy' => $accepted,
+            'chatbot_user_id' => $payload['chatbot_user_id'] ?? null,
+            'chatbot_session_id' => $payload['chatbot_session_id'] ?? null,
+            'consent_at' => $payload['consent_at'] ?? date('c'),
+            'raw' => $payload,
+        ];
+
+        $message = $this->buildWhatsAppNotes($leadName, $displayPhone, $botSession, $accepted, $lastMessage);
+
+        if ($existing) {
+            $oldMetadata = [];
+            if (!empty($existing->metadata_json)) {
+                $oldMetadata = is_array($existing->metadata_json)
+                    ? $existing->metadata_json
+                    : (json_decode((string) $existing->metadata_json, true) ?: []);
+            }
+
+            $existing->update([
+                'full_name' => $existing->full_name ?: $leadName,
+                'phone' => $displayPhone,
+                'source_type' => 'contact',
+                'channel' => 'whatsapp',
+                'subject' => $existing->subject ?: 'Contacto externo / WhatsApp',
+                'message' => $message,
+                'whatsapp_opt_in' => $accepted === true ? 1 : (int) ($existing->whatsapp_opt_in ?? 0),
+                'consent_accepted_at' => $accepted === true ? date('Y-m-d H:i:s') : $existing->consent_accepted_at,
+                'last_contact_at' => date('Y-m-d H:i:s'),
+                'metadata_json' => json_encode(array_merge($oldMetadata, $metadata), JSON_UNESCAPED_UNICODE),
+            ]);
+
+            $lead = Lead::find((int) $existing->id) ?: $existing;
+            $created = false;
+        } else {
+            $lead = Lead::create([
+                'customer_id' => null,
+                'full_name' => $leadName,
+                'email' => $payload['email'] ?? null,
+                'phone' => $displayPhone,
+                'source_type' => 'contact',
+                'channel' => 'whatsapp',
+                'subject' => 'Contacto externo / WhatsApp',
+                'message' => $message,
+                'package_id' => null,
+                'package_slug' => null,
+                'sales_opportunity_id' => null,
+                'status' => 'new',
+                'priority' => 'normal',
+                'assigned_admin_user_id' => null,
+                'whatsapp_opt_in' => $accepted === true ? 1 : 0,
+                'consent_accepted_at' => $accepted === true ? date('Y-m-d H:i:s') : null,
+                'metadata_json' => json_encode($metadata, JSON_UNESCAPED_UNICODE),
+                'last_contact_at' => date('Y-m-d H:i:s'),
+                'closed_at' => null,
+            ]);
+
+            if (!$lead) {
+                throw new \RuntimeException('No fue posible crear el lead de WhatsApp.');
+            }
+
+            $created = true;
         }
 
-        if ($infants > 0) {
-            $parts[] = $infants . ' ' . ($infants === 1 ? 'bebe' : 'bebes');
-        }
+        $interactionBody = $lastMessage !== ''
+            ? $lastMessage
+            : ($accepted === true ? 'Aceptó política de tratamiento de datos personales por WhatsApp.' : 'Registro desde WhatsApp.');
 
-        return implode(', ', $parts);
+        LeadInteraction::create([
+            'lead_id' => (int) $lead->id,
+            'admin_user_id' => null,
+            'channel' => 'whatsapp',
+            'direction' => 'in',
+            'event_type' => $accepted === true ? 'policy_accepted' : 'chatbot_event',
+            'message' => $interactionBody,
+            'meta_json' => json_encode($metadata, JSON_UNESCAPED_UNICODE),
+        ]);
+
+        return [
+            'created' => $created,
+            'lead_id' => (int) $lead->id,
+            'lead' => $lead,
+        ];
     }
 
-    
+    private function buildWhatsAppNotes(string $name, string $phone, string $botSession, ?bool $accepted, string $lastMessage): string
+    {
+        $lines = [
+            'Origen: Contacto externo / WhatsApp',
+            'Nombre detectado: ' . ($name ?: 'No disponible'),
+            'Identificador WhatsApp: ' . $phone,
+        ];
+
+        if ($botSession !== '') {
+            $lines[] = 'Cuenta chatbot: ' . $botSession;
+        }
+
+        if ($accepted !== null) {
+            $lines[] = 'Política de datos: ' . ($accepted ? 'Aceptó' : 'No aceptó');
+        }
+
+        if ($lastMessage !== '') {
+            $lines[] = 'Último mensaje: ' . $lastMessage;
+        }
+
+        return implode("\n", $lines);
+    }
+
 }

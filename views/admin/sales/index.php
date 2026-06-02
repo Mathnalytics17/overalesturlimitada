@@ -4,7 +4,6 @@ $search = $search ?? '';
 $stage = $stage ?? '';
 $assignedAdminId = $assignedAdminId ?? 0;
 $admins = $admins ?? [];
-$pagination = $pagination ?? [];
 
 $adminMap = [];
 foreach ($admins as $admin) {
@@ -52,7 +51,7 @@ function sales_stage_badge_class(string $stage): string
 function sales_temperature_label(string $temp): string
 {
     return match ($temp) {
-        'cold' => 'FrÃ­o',
+        'cold' => 'Frío',
         'warm' => 'Medio',
         'hot' => 'Caliente',
         default => ucfirst($temp),
@@ -62,13 +61,6 @@ function sales_temperature_label(string $temp): string
 
 <style>
   .sales-page { display:flex; flex-direction:column; gap:20px; }
-  .sales-header {
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:16px;
-    flex-wrap:wrap;
-  }
   .sales-toolbar,
   .sales-card,
   .sales-empty {
@@ -80,16 +72,9 @@ function sales_temperature_label(string $temp): string
 
   .sales-toolbar form {
     display:grid;
-    grid-template-columns: 1.2fr .8fr .9fr auto;
+    grid-template-columns: 1.2fr .8fr .9fr auto auto;
     gap:12px;
     align-items:end;
-  }
-
-  .sales-toolbar-actions {
-    display:flex;
-    gap:12px;
-    flex-wrap:wrap;
-    align-items:center;
   }
 
   .sales-toolbar label {
@@ -191,10 +176,6 @@ function sales_temperature_label(string $temp): string
     font-size:18px;
   }
 
-  .sales-interest-title {
-    font-size:16px;
-  }
-
   .sales-sub {
     color:#64748b;
     font-size:14px;
@@ -244,47 +225,26 @@ function sales_temperature_label(string $temp): string
   }
 
   @media (max-width: 900px) {
-    .sales-header {
-      flex-direction:column;
-      align-items:stretch;
-    }
-
-    .sales-header .btn-main {
-      width:100%;
-    }
-
     .sales-toolbar form {
       grid-template-columns: 1fr;
-    }
-
-    .sales-toolbar-actions > * {
-      flex:1 1 100%;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .sales-toolbar,
-    .sales-card {
-      padding:16px;
-      border-radius:18px;
     }
   }
 </style>
 
 <div class="app">
   <main class="main">
-    <section class="content sales-page">
-      <div class="sales-header">
-        <div class="top-left">
-          <div class="page-title">
-            <h1>Seguimiento de ventas</h1>
-            <p>Gestiona oportunidades comerciales, seguimiento y cierre.</p>
-          </div>
+    
+      <div class="top-left">
+        <div class="page-title">
+          <h1>Seguimiento de ventas</h1>
+          <p>Gestiona oportunidades comerciales, seguimiento y cierre.</p>
         </div>
-
-        <a href="/admin/sales/create" class="btn-main">Nueva oportunidad</a>
       </div>
+    
 
+    <a href="/admin/sales/create" class="btn-main">Nueva oportunidad</a>
+
+    <section class="content sales-page">
       <div class="sales-toolbar">
         <form method="GET" action="/admin/sales">
           <div>
@@ -294,7 +254,7 @@ function sales_temperature_label(string $temp): string
               id="q"
               name="q"
               value="<?= htmlspecialchars($search) ?>"
-              placeholder="Nombre, telÃ©fono, email, paquete..."
+              placeholder="Nombre, teléfono, email, paquete..."
             >
           </div>
 
@@ -328,10 +288,8 @@ function sales_temperature_label(string $temp): string
             </select>
           </div>
 
-          <div class="sales-toolbar-actions">
-            <button type="submit" class="btn-main">Filtrar</button>
-            <a href="/admin/sales" class="btn-outline">Limpiar</a>
-          </div>
+          <button type="submit" class="btn-main">Filtrar</button>
+          <a href="/admin/sales" class="btn-outline">Limpiar</a>
         </form>
       </div>
 
@@ -342,7 +300,7 @@ function sales_temperature_label(string $temp): string
             <p><?= count($items) ?> registro(s) encontrados.</p>
           </div>
 
-          <div class="sales-toolbar-actions">
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <a
               href="/admin/sales/kanban?q=<?= urlencode((string) $search) ?>&assigned_admin_id=<?= (int) $assignedAdminId ?>"
               class="btn-outline"
@@ -357,12 +315,12 @@ function sales_temperature_label(string $temp): string
             No hay oportunidades de venta para mostrar.
           </div>
         <?php else: ?>
-          <div class="sales-table-wrap table-wrap keep-scroll">
+          <div class="sales-table-wrap">
             <table class="sales-table">
               <thead>
                 <tr>
                   <th>Cliente</th>
-                  <th>InterÃ©s</th>
+                  <th>Interés</th>
                   <th>Etapa</th>
                   <th>Temperatura</th>
                   <th>Seguimiento</th>
@@ -378,7 +336,7 @@ function sales_temperature_label(string $temp): string
                     $advisor = $assignedId > 0 ? ($adminMap[$assignedId] ?? null) : null;
                   ?>
                   <tr>
-                    <td data-label="Cliente">
+                    <td>
                       <div class="sales-name"><?= htmlspecialchars($item->customer_name ?? '') ?></div>
                       <div class="sales-sub">
                         <?= htmlspecialchars($item->customer_phone ?? '') ?><br>
@@ -386,8 +344,8 @@ function sales_temperature_label(string $temp): string
                       </div>
                     </td>
 
-                    <td data-label="Interes">
-                      <div class="sales-name sales-interest-title">
+                    <td>
+                      <div class="sales-name" style="font-size:16px;">
                         <?= htmlspecialchars($item->interest_type ?? 'other') ?>
                       </div>
                       <div class="sales-sub">
@@ -400,40 +358,40 @@ function sales_temperature_label(string $temp): string
                       </div>
                     </td>
 
-                    <td data-label="Etapa">
+                    <td>
                       <span class="<?= sales_stage_badge_class((string) ($item->sales_stage ?? '')) ?>">
                         <?= htmlspecialchars(sales_stage_label((string) ($item->sales_stage ?? ''))) ?>
                       </span>
                     </td>
 
-                    <td data-label="Temperatura">
+                    <td>
                       <span class="badge gray">
                         <?= htmlspecialchars(sales_temperature_label((string) ($item->sales_temperature ?? 'warm'))) ?>
                       </span>
                     </td>
 
-                    <td data-label="Seguimiento">
+                    <td>
                       <div class="sales-sub">
                         <?php if (!empty($item->next_follow_up_at)): ?>
-                          PrÃ³ximo: <?= htmlspecialchars($item->next_follow_up_at) ?><br>
+                          Próximo: <?= htmlspecialchars($item->next_follow_up_at) ?><br>
                         <?php else: ?>
-                          Sin programaciÃ³n<br>
+                          Sin programación<br>
                         <?php endif; ?>
 
                         <?php if (!empty($item->last_contact_at)): ?>
-                          Ãšltimo: <?= htmlspecialchars($item->last_contact_at) ?>
+                          Último: <?= htmlspecialchars($item->last_contact_at) ?>
                         <?php endif; ?>
                       </div>
                     </td>
 
-                    <td data-label="Origen">
+                    <td>
                       <div class="sales-sub">
                         <?= htmlspecialchars($item->source_origin ?? '') ?><br>
                         Canal: <?= htmlspecialchars($item->source_channel ?? '') ?>
                       </div>
                     </td>
 
-                    <td data-label="Asesor">
+                    <td>
                       <div class="sales-sub">
                         <?php if ($advisor): ?>
                           <?= htmlspecialchars($advisor->full_name ?? $advisor->name ?? $advisor->email ?? ('Admin #' . $assignedId)) ?>
@@ -445,7 +403,7 @@ function sales_temperature_label(string $temp): string
                       </div>
                     </td>
 
-                    <td data-label="Acciones">
+                    <td>
                       <div class="action-links">
                         <a href="/admin/sales/show?id=<?= (int) $item->id ?>&return_to=<?= urlencode($currentUrl) ?>">
                           Ver detalle
@@ -458,12 +416,6 @@ function sales_temperature_label(string $temp): string
             </table>
           </div>
         <?php endif; ?>
-
-        <?= render_pagination($pagination, [
-          'q' => $search,
-          'stage' => $stage,
-          'assigned_admin_id' => $assignedAdminId > 0 ? $assignedAdminId : null,
-        ]) ?>
       </div>
     </section>
   </main>

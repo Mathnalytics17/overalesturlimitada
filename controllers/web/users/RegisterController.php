@@ -63,6 +63,6 @@ class RegisterController extends Controller
             'errors' => $result['errors'] ?? [],
             'message' => $result['message'] ?? null,
             'old' => $_POST,
-        ],'mainUserLayout');
+        ]);
     }
 }

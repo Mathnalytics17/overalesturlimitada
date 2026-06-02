@@ -22,7 +22,7 @@ function service_error(array $errors, string $field): ?string
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?= e($service->displayTitle()) ?></title>
+  <title><?= e($service->titulo) ?></title>
   <style>
     :root{
       --red:#b61f2a;
@@ -265,7 +265,7 @@ function service_error(array $errors, string $field): ?string
 
     <div class="hero">
       <div class="hero-image">
-        <img src="<?= e($service->imagen) ?>" alt="<?= e($service->displayTitle()) ?>">
+        <img src="<?= e($service->imagen) ?>" alt="<?= e($service->titulo) ?>">
       </div>
 
       <div class="hero-content">
@@ -275,7 +275,7 @@ function service_error(array $errors, string $field): ?string
           </div>
         <?php endif; ?>
 
-        <h1><?= e($service->displayTitle()) ?></h1>
+        <h1><?= e($service->titulo) ?></h1>
         <p><?= nl2br(e($service->descripcion_larga ?: $service->descripcion_corta)) ?></p>
 
         <div class="actions">
@@ -308,7 +308,7 @@ function service_error(array $errors, string $field): ?string
         <?= \app\Core\Csrf::input(); ?>
 
         <input type="hidden" name="extra_service_id" value="<?= (int) $service->id ?>">
-        <input type="hidden" name="subject" value="<?= e('Solicitud de información - ' . $service->displayTitle()) ?>">
+        <input type="hidden" name="subject" value="<?= e('Solicitud de información - ' . $service->titulo) ?>">
 
         <div class="field">
           <label for="nombre">Nombre</label>
@@ -336,7 +336,7 @@ function service_error(array $errors, string $field): ?string
 
         <div class="field">
           <label for="mensaje">Mensaje</label>
-          <textarea id="mensaje" name="mensaje"><?= e($old['mensaje'] ?? ('Hola, quiero recibir información sobre ' . $service->displayTitle() . '.')) ?></textarea>
+          <textarea id="mensaje" name="mensaje"><?= e($old['mensaje'] ?? ('Hola, quiero recibir información sobre ' . $service->titulo . '.')) ?></textarea>
           <?php if (service_error($errors, 'mensaje')): ?>
             <small class="error"><?= e(service_error($errors, 'mensaje')) ?></small>
           <?php endif; ?>

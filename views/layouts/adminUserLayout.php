@@ -12,7 +12,7 @@ $adminToasts = Flash::getAll();
 
   <?php require __DIR__ . "../../../shared/partials/layout_top.php"; ?>
 
-  <script src="/js/vendor/lucide.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
