@@ -304,6 +304,24 @@ class LeadService
             if (!empty($metadata['oneWay'])) {
                 $parts[] = 'Trayecto: solo ida.';
             }
+
+            $adults = (int) ($metadata['adults'] ?? 1);
+            $children = (int) ($metadata['children'] ?? 0);
+            $babies = (int) ($metadata['babies'] ?? 0);
+
+            $parts[] = 'Viajeros: ' . $adults . ' adulto(s), ' . $children . ' niño(s), ' . $babies . ' bebé(s).';
+
+            if (!empty($metadata['travelsWithPet'])) {
+                $parts[] = 'Viaja con mascota.';
+            }
+
+            if (!empty($metadata['needsWheelchair'])) {
+                $parts[] = 'Necesita silla de ruedas.';
+            }
+
+            if (!empty($metadata['sportsEquipment'])) {
+                $parts[] = 'Artículo deportivo: ' . trim((string) $metadata['sportsEquipment']) . '.';
+            }
         } elseif ((string) $lead->source_type === 'package') {
             $parts[] = 'Quiero recibir información sobre un paquete turístico.';
 
@@ -369,6 +387,24 @@ class LeadService
 
             if (!empty($metadata['travelers'])) {
                 $parts[] = 'Viajeros: ' . trim((string) $metadata['travelers']) . '.';
+            }
+
+            $adults = (int) ($metadata['adults'] ?? 1);
+            $children = (int) ($metadata['children'] ?? 0);
+            $babies = (int) ($metadata['babies'] ?? 0);
+
+            $parts[] = 'Viajeros: ' . $adults . ' adulto(s), ' . $children . ' niño(s), ' . $babies . ' bebé(s).';
+
+            if (!empty($metadata['travelsWithPet'])) {
+                $parts[] = 'Viaja con mascota.';
+            }
+
+            if (!empty($metadata['needsWheelchair'])) {
+                $parts[] = 'Necesita silla de ruedas.';
+            }
+
+            if (!empty($metadata['sportsEquipment'])) {
+                $parts[] = 'Artículo deportivo: ' . trim((string) $metadata['sportsEquipment']) . '.';
             }
         } elseif (!empty($lead->subject)) {
             $parts[] = 'Asunto: ' . trim((string) $lead->subject) . '.';
@@ -460,6 +496,24 @@ class LeadService
                 $messageParts[] = 'Trayecto: solo ida';
             }
 
+            $adults = max(1, (int) ($payload['adults'] ?? 1));
+            $children = max(0, (int) ($payload['children'] ?? 0));
+            $babies = max(0, (int) ($payload['babies'] ?? 0));
+
+            $messageParts[] = 'Viajeros: ' . $adults . ' adulto(s), ' . $children . ' niño(s), ' . $babies . ' bebé(s)';
+
+            if (!empty($payload['travelsWithPet'])) {
+                $messageParts[] = 'Viaja con mascota: sí';
+            }
+
+            if (!empty($payload['needsWheelchair'])) {
+                $messageParts[] = 'Necesita silla de ruedas: sí';
+            }
+
+            if (!empty($payload['sportsEquipment'])) {
+                $messageParts[] = 'Artículo deportivo: ' . trim((string) $payload['sportsEquipment']);
+            }
+
             $message = implode(' | ', $messageParts);
         }
 
@@ -503,6 +557,12 @@ class LeadService
                 'departureDate' => $payload['departureDate'] ?? null,
                 'returnDate' => $payload['returnDate'] ?? null,
                 'oneWay' => !empty($payload['oneWay']),
+                'adults' => max(1, (int) ($payload['adults'] ?? 1)),
+                'children' => max(0, (int) ($payload['children'] ?? 0)),
+                'babies' => max(0, (int) ($payload['babies'] ?? 0)),
+                'travelsWithPet' => !empty($payload['travelsWithPet']),
+                'needsWheelchair' => !empty($payload['needsWheelchair']),
+                'sportsEquipment' => trim((string) ($payload['sportsEquipment'] ?? '')),
                 'extra_service_id' => !empty($payload['extra_service_id']) ? (int) $payload['extra_service_id'] : null,
                 'extra_service_title' => $extraService->titulo ?? null,
                 'extra_service_slug' => $extraService->slug ?? null,
@@ -530,6 +590,22 @@ class LeadService
         }
 
         if ($sourceType === 'tickets') {
+
+            $adults = (int) ($payload['adults'] ?? 1);
+            $children = (int) ($payload['children'] ?? 0);
+            $babies = (int) ($payload['babies'] ?? 0);
+
+            if ($adults < 1) {
+                $errors['adults'][] = 'Debe viajar al menos un adulto.';
+            }
+
+            if ($children < 0) {
+                $errors['children'][] = 'La cantidad de niños no puede ser negativa.';
+            }
+
+            if ($babies < 0) {
+                $errors['babies'][] = 'La cantidad de bebés no puede ser negativa.';
+            }
             if (trim((string) ($payload['country'] ?? '')) === '') {
                 $errors['country'][] = 'Debes seleccionar un país destino.';
             }

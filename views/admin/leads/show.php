@@ -27,7 +27,12 @@ $city = trim((string) ($metadata['city'] ?? ''));
 $departureDate = trim((string) ($metadata['departureDate'] ?? ''));
 $returnDate = trim((string) ($metadata['returnDate'] ?? ''));
 $oneWay = !empty($metadata['oneWay']);
-
+$adults = (int) ($metadata['adults'] ?? 1);
+$children = (int) ($metadata['children'] ?? 0);
+$babies = (int) ($metadata['babies'] ?? 0);
+$travelsWithPet = !empty($metadata['travelsWithPet']);
+$needsWheelchair = !empty($metadata['needsWheelchair']);
+$sportsEquipment = trim((string) ($metadata['sportsEquipment'] ?? ''));
 $travelSummary = [];
 if ($country !== '') $travelSummary[] = $country;
 if ($city !== '') $travelSummary[] = $city;
@@ -98,6 +103,26 @@ $canConvert = in_array((string) ($lead->source_type ?? ''), ['package', 'tickets
             <strong>Fecha de regreso</strong><br>
             <?= (!$oneWay && $returnDate !== '') ? e($returnDate) : 'No aplica' ?>
           </div>
+
+          <div style="padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;">
+            <strong>Viajeros</strong><br>
+            <?= e($adults . ' adulto(s), ' . $children . ' niño(s), ' . $babies . ' bebé(s)') ?>
+          </div>
+
+          <div style="padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;">
+            <strong>Mascota</strong><br>
+            <?= $travelsWithPet ? 'Sí' : 'No' ?>
+          </div>
+
+          <div style="padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;">
+            <strong>Silla de ruedas</strong><br>
+            <?= $needsWheelchair ? 'Sí' : 'No' ?>
+          </div>
+
+          <div style="padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;">
+            <strong>Artículo deportivo</strong><br>
+            <?= $sportsEquipment !== '' ? e($sportsEquipment) : 'No especificado' ?>
+          </div>
         </div>
       </div>
     <?php endif; ?>
@@ -121,16 +146,28 @@ $canConvert = in_array((string) ($lead->source_type ?? ''), ['package', 'tickets
     <?php endif; ?>
 
     <?php
-      $showMetadata = [];
-      foreach ((array) $metadata as $key => $value) {
-          if (in_array($key, ['country', 'city', 'departureDate', 'returnDate', 'oneWay'], true)) {
-              continue;
-          }
-          if ($value === null || $value === '' || $value === false) {
-              continue;
-          }
-          $showMetadata[$key] = $value;
+    $showMetadata = [];
+    foreach ((array) $metadata as $key => $value) {
+      if (in_array($key, [
+        'country',
+        'city',
+        'departureDate',
+        'returnDate',
+        'oneWay',
+        'adults',
+        'children',
+        'babies',
+        'travelsWithPet',
+        'needsWheelchair',
+        'sportsEquipment'
+      ], true)) {
+        continue;
       }
+      if ($value === null || $value === '' || $value === false) {
+        continue;
+      }
+      $showMetadata[$key] = $value;
+    }
     ?>
 
     <?php if (!empty($showMetadata)): ?>
@@ -253,8 +290,7 @@ $canConvert = in_array((string) ($lead->source_type ?? ''), ['package', 'tickets
           id="lead-note-message"
           name="message"
           style="width:100%;min-height:120px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin:10px 0;"
-          placeholder="Escribe una nota interna..."
-        ></textarea>
+          placeholder="Escribe una nota interna..."></textarea>
 
         <button class="btn primary" type="submit">Guardar nota</button>
       </form>
@@ -272,20 +308,17 @@ $canConvert = in_array((string) ($lead->source_type ?? ''), ['package', 'tickets
           type="text"
           name="title"
           placeholder="Título"
-          style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin-bottom:8px;"
-        >
+          style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin-bottom:8px;">
 
         <textarea
           name="description"
           placeholder="Descripción"
-          style="width:100%;min-height:80px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin-bottom:8px;"
-        ></textarea>
+          style="width:100%;min-height:80px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin-bottom:8px;"></textarea>
 
         <input
           type="datetime-local"
           name="due_at"
-          style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin-bottom:8px;"
-        >
+          style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;margin-bottom:8px;">
 
         <button class="btn primary" type="submit">Crear tarea</button>
       </form>
@@ -344,16 +377,19 @@ $canConvert = in_array((string) ($lead->source_type ?? ''), ['package', 'tickets
 </div>
 
 <?php if ($focusNote): ?>
-<script>
-  window.addEventListener('load', function () {
-    const noteField = document.getElementById('lead-note-message');
-    if (!noteField) return;
+  <script>
+    window.addEventListener('load', function() {
+      const noteField = document.getElementById('lead-note-message');
+      if (!noteField) return;
 
-    noteField.focus();
+      noteField.focus();
 
-    try {
-      noteField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } catch (e) {}
-  });
-</script>
+      try {
+        noteField.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      } catch (e) {}
+    });
+  </script>
 <?php endif; ?>

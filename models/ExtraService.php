@@ -58,7 +58,7 @@ class ExtraService extends Model
     public function leadSubject(): string
     {
         $map = [
-            'pasaportes-visas' => 'Solicitud de información - Pasaportes y Visas',
+            'pasaportes-visas' => 'Solicitud de información - Visas',
             'simcards-viajes-exterior' => 'Solicitud de información - Simcards para viajes al exterior',
             'asistencias-medicas' => 'Solicitud de información - Asistencias médicas',
             'receptivo-tours-internos' => 'Solicitud de información - Receptivo y tours internos',
