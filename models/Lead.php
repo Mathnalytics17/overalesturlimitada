@@ -3,6 +3,8 @@
 namespace app\Models;
 
 use app\Core\Model;
+use app\Core\Paginator;
+use app\Core\QueryBuilder;
 
 class Lead extends Model
 {
@@ -46,11 +48,39 @@ protected array $casts = [
         return array_map(fn(array $row) => new static($row), $rows);
     }
 
+    public static function byCustomer(int $customerId, int $limit = 50): array
+    {
+        $rows = static::query()
+            ->where('customer_id', '=', $customerId)
+            ->orderBy('id', 'DESC')
+            ->limit($limit)
+            ->get();
+
+        return array_map(fn(array $row) => new static($row), $rows ?: []);
+    }
+
     
 
     public static function filter(array $filters = [], int $limit = 100): array
     {
-        $query = static::query()->orderBy('id', 'DESC')->limit($limit);
+        $rows = static::filteredQuery($filters)->limit($limit)->get();
+
+        return array_map(fn(array $row) => new static($row), $rows);
+    }
+
+    public static function paginate(array $filters = [], int $page = 1, int $perPage = 25): array
+    {
+        return Paginator::fromQuery(
+            static::filteredQuery($filters),
+            $page,
+            $perPage,
+            fn(array $row) => new static($row)
+        );
+    }
+
+    protected static function filteredQuery(array $filters): QueryBuilder
+    {
+        $query = static::query()->orderBy('id', 'DESC');
 
         if (!empty($filters['status'])) {
             $query->where('status', '=', (string) $filters['status']);
@@ -64,17 +94,11 @@ protected array $casts = [
             $query->where('assigned_admin_user_id', '=', (int) $filters['assigned_admin_user_id']);
         }
 
-        $rows = $query->get();
-
         if (!empty($filters['q'])) {
-            $needle = mb_strtolower((string) $filters['q']);
-            $rows = array_values(array_filter($rows, static function (array $row) use ($needle): bool {
-                $haystack = mb_strtolower(trim(($row['full_name'] ?? '') . ' ' . ($row['email'] ?? '') . ' ' . ($row['phone'] ?? '') . ' ' . ($row['subject'] ?? '')));
-                return $haystack !== '' && str_contains($haystack, $needle);
-            }));
+            $query->whereAnyLike(['full_name', 'email', 'phone', 'subject'], trim((string) $filters['q']));
         }
 
-        return array_map(fn(array $row) => new static($row), $rows);
+        return $query;
     }
 
     public static function countsByStatus(): array

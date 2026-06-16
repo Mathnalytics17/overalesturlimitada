@@ -29,7 +29,12 @@ class LeadController extends Controller
             'q' => trim((string) $request->input('q', '')),
         ];
 
-        $leads = Lead::filter($filters, 200);
+        $pagination = Lead::paginate(
+            $filters,
+            (int) $request->input('page', 1),
+            (int) $request->input('per_page', 25)
+        );
+        $leads = $pagination['items'];
         $admins = AdminUser::all();
 
         $adminMap = [];
@@ -48,6 +53,7 @@ class LeadController extends Controller
         return $this->render('admin/leads/index', [
             'leads' => $leads,
             'filters' => $filters,
+            'pagination' => $pagination,
             'admins' => $admins,
             'adminMap' => $adminMap,
             'counts' => Lead::countsByStatus(),
@@ -62,7 +68,7 @@ class LeadController extends Controller
 
         if (!$lead) {
             http_response_code(404);
-            return $this->render('_404', [], 'adminUserLayout');
+            return $this->render('_404_admin', ['page_title' => 'Página no encontrada', 'page_subtitle' => 'El registro solicitado no existe.'], 'adminUserLayout');
         }
 
         $admins = AdminUser::all();

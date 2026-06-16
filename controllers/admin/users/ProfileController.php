@@ -64,7 +64,8 @@ class ProfileController extends Controller
 
         $result = $service->updateProfile(
             adminUserId: (int) $user->id,
-            input: $_POST
+            input: $_POST,
+            files: $_FILES
         );
 
         $freshUser = AdminAuth::user();

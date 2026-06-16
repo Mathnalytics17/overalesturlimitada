@@ -5,6 +5,7 @@ $active = 'pqrs';
 
 $cases = $cases ?? [];
 $filters = $filters ?? [];
+$pagination = $pagination ?? [];
 ?>
 
 <div class="card">
@@ -17,7 +18,7 @@ $filters = $filters ?? [];
 
   <div class="sep"></div>
 
-  <form method="get" action="/admin/pqrs" style="display:grid;grid-template-columns:1fr 1fr 1.4fr auto;gap:12px;align-items:end;margin-bottom:18px;">
+  <form method="get" action="/admin/pqrs" class="admin-filter-grid">
     <div>
       <label for="status" style="display:block;margin-bottom:6px;font-weight:600;">Estado</label>
       <select name="status" id="status" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;">
@@ -52,6 +53,15 @@ $filters = $filters ?? [];
         placeholder="Radicado, nombre, correo, asunto..."
         style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;"
       >
+    </div>
+
+    <div>
+      <label for="per_page" style="display:block;margin-bottom:6px;font-weight:600;">Filas</label>
+      <select name="per_page" id="per_page">
+        <?php foreach ([10, 25, 50, 100] as $size): ?>
+          <option value="<?= $size ?>" <?= (int) ($pagination['per_page'] ?? 25) === $size ? 'selected' : '' ?>><?= $size ?></option>
+        <?php endforeach; ?>
+      </select>
     </div>
 
     <div>
@@ -121,4 +131,9 @@ $filters = $filters ?? [];
       </tbody>
     </table>
   </div>
+  <?php
+    $paginationBaseUrl = '/admin/pqrs';
+    $paginationFilters = array_merge($filters, ['per_page' => $pagination['per_page'] ?? 25]);
+    require dirname(__DIR__, 3) . '/shared/partials/admin_pagination.php';
+  ?>
 </div>

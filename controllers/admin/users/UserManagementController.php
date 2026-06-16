@@ -24,11 +24,14 @@ class UserManagementController extends Controller
             'role' => trim((string) ($_GET['role'] ?? '')),
             'q' => trim((string) ($_GET['q'] ?? '')),
         ];
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $perPage = $this->perPage();
 
-        $users = $this->service->list($filters);
+        $pagination = $this->service->list($filters, $page, $perPage);
 
         return $this->render('admin/users/userList', [
-            'users' => $users,
+            'users' => $pagination['items'],
+            'pagination' => $pagination,
             'filters' => $filters,
             'editingUser' => null,
             'currentAdminId' => (int) (AdminAuth::id() ?? 0),
@@ -84,11 +87,14 @@ class UserManagementController extends Controller
             'role' => trim((string) ($_GET['role'] ?? '')),
             'q' => trim((string) ($_GET['q'] ?? '')),
         ];
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $perPage = $this->perPage();
 
-        $users = $this->service->list($filters);
+        $pagination = $this->service->list($filters, $page, $perPage);
 
         return $this->render('admin/users/userList', [
-            'users' => $users,
+            'users' => $pagination['items'],
+            'pagination' => $pagination,
             'filters' => $filters,
             'editingUser' => $user,
             'currentAdminId' => (int) (AdminAuth::id() ?? 0),
@@ -179,5 +185,11 @@ class UserManagementController extends Controller
 
         redirect('/admin/users');
         exit;
+    }
+
+    protected function perPage(): int
+    {
+        $perPage = (int) ($_GET['per_page'] ?? 20);
+        return in_array($perPage, [10, 20, 50, 100], true) ? $perPage : 20;
     }
 }

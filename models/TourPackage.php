@@ -3,6 +3,8 @@
 namespace app\Models;
 
 use app\Core\Model;
+use app\Core\Paginator;
+use app\Core\QueryBuilder;
 
 class TourPackage extends Model
 {
@@ -20,6 +22,7 @@ class TourPackage extends Model
         'country_id',
         'city_id',
         'price_from',
+        'currency_id',
         'currency',
         'duration_days',
         'duration_nights',
@@ -69,6 +72,33 @@ class TourPackage extends Model
         });
 
         return array_values($items);
+    }
+
+    public static function paginateAdmin(array $filters = [], int $page = 1, int $perPage = 25): array
+    {
+        return Paginator::fromQuery(
+            static::filteredAdminQuery($filters),
+            $page,
+            $perPage,
+            fn(array $row) => new static($row)
+        );
+    }
+
+    protected static function filteredAdminQuery(array $filters): QueryBuilder
+    {
+        $query = static::query()
+            ->orderBy('sort_order', 'ASC')
+            ->orderBy('id', 'DESC');
+
+        if (!empty($filters['status'])) {
+            $query->where('status', '=', (string) $filters['status']);
+        }
+
+        if (!empty($filters['q'])) {
+            $query->whereAnyLike(['title', 'location_name', 'slug'], trim((string) $filters['q']));
+        }
+
+        return $query;
     }
 
     public static function publishedList(?string $search = null): array

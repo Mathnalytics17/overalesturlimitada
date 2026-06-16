@@ -1,33 +1,13 @@
 <?php use app\Core\Csrf; ?>
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <title>Olvidé mi contraseña</title>
-</head>
-<body>
-  <h1>Recuperar contraseña</h1>
-
-  <?php if (!empty($message)): ?>
-    <p><?= htmlspecialchars($message) ?></p>
-  <?php endif; ?>
-
-  <form method="POST" action="/users/forgotPassword">
+<link rel="stylesheet" href="/styles/user-account.css">
+<main class="account-flow"><section class="account-flow-card">
+  <h1>Recuperar contrasena</h1>
+  <p>Te enviaremos un enlace seguro para crear una nueva contrasena.</p>
+  <?php if (!empty($message)): ?><div class="account-flow-alert"><?= htmlspecialchars($message) ?></div><?php endif; ?>
+  <form class="account-flow-form" method="POST" action="/users/forgotPassword">
     <?= Csrf::input(); ?>
-
-    <label>Correo</label>
-    <input
-      type="email"
-      name="email"
-      value="<?= htmlspecialchars($old['email'] ?? '') ?>"
-      required
-    >
-
-    <div style="margin:12px 0;">
-      <?= turnstile_widget_html(); ?>
-    </div>
-
-    <button type="submit">Enviar enlace</button>
+    <div class="account-flow-field"><label for="email">Correo electronico</label><input id="email" type="email" name="email" value="<?= htmlspecialchars($old['email'] ?? '') ?>" autocomplete="email" required></div>
+    <div><?= turnstile_widget_html(); ?></div>
+    <div class="account-flow-actions"><a class="account-flow-btn" href="/users/login">Volver</a><button class="account-flow-btn primary" type="submit">Enviar enlace</button></div>
   </form>
-</body>
-</html>
+</section></main>

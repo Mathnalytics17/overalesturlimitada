@@ -1,25 +1,13 @@
 <?php use app\Core\Csrf; ?>
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <title>Reenviar verificación</title>
-</head>
-<body>
-  <h1>Reenviar verificación</h1>
-
-  <?php if (!empty($message)): ?>
-    <p><?= htmlspecialchars($message) ?></p>
-  <?php endif; ?>
-
-  <form method="POST" action="/users/resendVerification">
+<link rel="stylesheet" href="/styles/user-account.css">
+<main class="account-flow"><section class="account-flow-card">
+  <h1>Reenviar verificacion</h1>
+  <p>Solicita un nuevo enlace para activar tu cuenta.</p>
+  <?php if (!empty($message)): ?><div class="account-flow-alert"><?= htmlspecialchars($message) ?></div><?php endif; ?>
+  <form class="account-flow-form" method="POST" action="/users/resendVerification">
     <?= Csrf::input(); ?>
-    <label>Correo</label>
-    <input type="email" name="email" value="<?= htmlspecialchars($old['email'] ?? '') ?>">
-    <div style="margin:12px 0;">
-      <?= turnstile_widget_html(); ?>
-    </div>
-    <button type="submit">Reenviar enlace</button>
+    <div class="account-flow-field"><label for="email">Correo electronico</label><input id="email" type="email" name="email" value="<?= htmlspecialchars($old['email'] ?? '') ?>" autocomplete="email"></div>
+    <div><?= turnstile_widget_html(); ?></div>
+    <div class="account-flow-actions"><a class="account-flow-btn" href="/users/login">Volver</a><button class="account-flow-btn primary" type="submit">Reenviar enlace</button></div>
   </form>
-</body>
-</html>
+</section></main>

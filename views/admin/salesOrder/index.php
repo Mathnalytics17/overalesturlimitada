@@ -1,6 +1,8 @@
 <?php
 $items = $items ?? [];
 $search = $search ?? '';
+$filters = $filters ?? [];
+$pagination = $pagination ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -21,7 +23,7 @@ $search = $search ?? '';
 
     .orders-toolbar form {
       display:grid;
-      grid-template-columns: 1fr auto auto;
+      grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
       gap:12px;
       align-items:end;
     }
@@ -34,7 +36,8 @@ $search = $search ?? '';
       font-size:14px;
     }
 
-    .orders-toolbar input {
+    .orders-toolbar input,
+    .orders-toolbar select {
       width:100%;
       border:1px solid #cbd5e1;
       border-radius:14px;
@@ -136,6 +139,35 @@ $search = $search ?? '';
                 value="<?= htmlspecialchars($search) ?>"
                 placeholder="Número, cliente, paquete..."
               >
+            </div>
+
+            <div>
+              <label for="commercial_status">Pago</label>
+              <select id="commercial_status" name="commercial_status">
+                <option value="">Todos</option>
+                <?php foreach (['open', 'paid_partial', 'paid_full', 'cancelled'] as $status): ?>
+                  <option value="<?= $status ?>" <?= ($filters['commercial_status'] ?? '') === $status ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+
+            <div>
+              <label for="operational_status">Operacion</label>
+              <select id="operational_status" name="operational_status">
+                <option value="">Todas</option>
+                <?php foreach (['pending_documents', 'pending_booking', 'booked', 'delivered', 'completed', 'cancelled'] as $status): ?>
+                  <option value="<?= $status ?>" <?= ($filters['operational_status'] ?? '') === $status ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+
+            <div>
+              <label for="per_page">Filas</label>
+              <select id="per_page" name="per_page">
+                <?php foreach ([10, 25, 50, 100] as $size): ?>
+                  <option value="<?= $size ?>" <?= (int) ($pagination['per_page'] ?? 25) === $size ? 'selected' : '' ?>><?= $size ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
 
             <button type="submit" class="btn-main">Filtrar</button>
@@ -247,6 +279,11 @@ $search = $search ?? '';
               </tbody>
             </table>
           </div>
+          <?php
+            $paginationBaseUrl = '/admin/sales-orders';
+            $paginationFilters = array_merge($filters, ['per_page' => $pagination['per_page'] ?? 25]);
+            require dirname(__DIR__, 3) . '/shared/partials/admin_pagination.php';
+          ?>
         </div>
       </section>
     </main>

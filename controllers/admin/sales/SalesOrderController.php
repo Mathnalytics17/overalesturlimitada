@@ -5,12 +5,13 @@ namespace app\Controllers\admin\sales;
 use app\Core\AdminAuth;
 use app\Core\Controller;
 use app\Core\Csrf;
-use app\Models\SalesOrder;
-use app\Services\Admin\Sales\SalesOrderService;
+use app\Core\Flash;
 use app\Models\SalesOpportunity;
 use app\Models\SalesOpportunityEvent;
+use app\Models\SalesOrder;
 use app\Models\SalesPayment;
-use app\Core\Flash;
+use app\Services\Admin\Sales\SalesOrderService;
+
 class SalesOrderController extends Controller
 {
     protected SalesOrderService $service;
@@ -23,51 +24,52 @@ class SalesOrderController extends Controller
     public function index()
     {
         $search = trim($_GET['q'] ?? '');
-        $items = SalesOrder::adminList($search !== '' ? $search : null);
+        $filters = [
+            'q' => $search,
+            'commercial_status' => trim((string) ($_GET['commercial_status'] ?? '')),
+            'operational_status' => trim((string) ($_GET['operational_status'] ?? '')),
+        ];
 
-        return $this->render('admin/salesOrders/index', [
-            'items' => $items,
+        $pagination = SalesOrder::paginateAdmin(
+            $filters,
+            (int) ($_GET['page'] ?? 1),
+            (int) ($_GET['per_page'] ?? 25)
+        );
+
+        return $this->render('admin/salesOrder/index', [
+            'page_title' => 'Ventas / Reservas',
+            'page_subtitle' => 'Controla las ventas cerradas y su avance operativo.',
+            'items' => $pagination['items'],
             'search' => $search,
+            'filters' => $filters,
+            'pagination' => $pagination,
         ], 'adminUserLayout');
     }
 
-
     public function show()
-{
-    $id = (int)($_GET['id'] ?? 0);
-    $item = SalesOrder::find($id);
+    {
+        $id = (int)($_GET['id'] ?? 0);
+        $item = SalesOrder::find($id);
 
-    if (!$item) {
-        \redirect('/admin/sales-orders');
+        if (!$item) {
+            Flash::error('La venta/reserva no fue encontrada.');
+            \redirect('/admin/sales-orders');
+        }
+
+        $opportunity = SalesOpportunity::find((int)$item->sales_opportunity_id);
+        $payments = SalesPayment::byOpportunity((int)$item->sales_opportunity_id);
+        $events = SalesOpportunityEvent::byOpportunity((int)$item->sales_opportunity_id);
+
+        return $this->render('admin/salesOrder/show', [
+            'page_title' => 'Detalle de venta / reserva',
+            'page_subtitle' => 'Consulta el estado comercial, pagos y operación.',
+            'item' => $item,
+            'opportunity' => $opportunity,
+            'payments' => $payments,
+            'events' => $events,
+        ], 'adminUserLayout');
     }
 
-    $opportunity = SalesOpportunity::find((int)$item->sales_opportunity_id);
-    $payments = SalesPayment::byOpportunity((int)$item->sales_opportunity_id);
-    $events = SalesOpportunityEvent::byOpportunity((int)$item->sales_opportunity_id);
-
-    return $this->render('admin/salesOrders/show', [
-        'item' => $item,
-        'opportunity' => $opportunity,
-        'payments' => $payments,
-        'events' => $events,
-    ], 'adminUserLayout');
-}
-
-public function updateNotes()
-{
-    if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-        http_response_code(419);
-        exit('CSRF inválido');
-    }
-
-    $id = (int)($_POST['id'] ?? 0);
-    $notes = trim((string)($_POST['notes'] ?? ''));
-    $admin = AdminAuth::user();
-
-    $this->service->updateNotes($id, $notes, $admin?->id ? (int)$admin->id : null);
-
-    \redirect('/admin/sales-orders/show?id=' . $id);
-}
     public function createFromOpportunity()
     {
         if (!Csrf::validate($_POST['_csrf'] ?? null)) {
@@ -84,30 +86,70 @@ public function updateNotes()
         );
 
         if (!empty($result['order'])) {
-            \redirect('/admin/sales-orders');
+            if (!empty($result['success'])) {
+                Flash::success($result['message'] ?? 'Venta/reserva creada correctamente.');
+            } else {
+                Flash::warning($result['message'] ?? 'La oportunidad ya tenía una venta/reserva creada.');
+            }
+
+            \redirect('/admin/sales-orders/show?id=' . (int)$result['order']->id);
         }
 
-        \redirect('/admin/sales/show?id=' . $opportunityId);
+        Flash::error($result['message'] ?? 'No fue posible crear la venta/reserva.');
+        \redirect($this->safeReturnTo($_POST['return_to'] ?? '', '/admin/sales/show?id=' . $opportunityId));
     }
 
     public function updateOperationalStatus()
-{
-    if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-        http_response_code(419);
-        exit('CSRF inválido');
+    {
+        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+            http_response_code(419);
+            exit('CSRF inválido');
+        }
+
+        $orderId = (int)($_POST['id'] ?? 0);
+        $status = trim((string)($_POST['operational_status'] ?? ''));
+        $returnTo = trim((string)($_POST['return_to'] ?? 'index'));
+        $admin = AdminAuth::user();
+
+        $ok = $this->service->updateOperationalStatus($orderId, $status, $admin?->id ? (int)$admin->id : null);
+        if ($ok) {
+            Flash::success('Estado operativo actualizado correctamente.');
+        } elseif ($status === 'completed') {
+            Flash::error('No puedes marcar como completado si la venta todavía tiene saldo pendiente.');
+        } else {
+            Flash::error('No fue posible actualizar el estado operativo.');
+        }
+
+        if ($returnTo === 'show') {
+            \redirect('/admin/sales-orders/show?id=' . $orderId);
+        }
+
+        \redirect('/admin/sales-orders');
     }
 
-    $orderId = (int)($_POST['id'] ?? 0);
-    $status = trim((string)($_POST['operational_status'] ?? ''));
-    $returnTo = trim((string)($_POST['return_to'] ?? 'index'));
-    $admin = AdminAuth::user();
+    public function updateNotes()
+    {
+        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
+            http_response_code(419);
+            exit('CSRF inválido');
+        }
 
-    $this->service->updateOperationalStatus($orderId, $status, $admin?->id ? (int)$admin->id : null);
+        $id = (int)($_POST['id'] ?? 0);
+        $notes = trim((string)($_POST['notes'] ?? ''));
+        $admin = AdminAuth::user();
 
-    if ($returnTo === 'show') {
-        \redirect('/admin/sales-orders/show?id=' . $orderId);
+        $ok = $this->service->updateNotes($id, $notes, $admin?->id ? (int)$admin->id : null);
+        $ok ? Flash::success('Notas operativas actualizadas correctamente.') : Flash::error('No fue posible actualizar las notas operativas.');
+
+        \redirect('/admin/sales-orders/show?id=' . $id);
     }
 
-    \redirect('/admin/sales-orders');
-}
+    protected function safeReturnTo(string $returnTo, string $fallback): string
+    {
+        $returnTo = trim($returnTo);
+        if ($returnTo === '' || !str_starts_with($returnTo, '/admin')) {
+            return $fallback;
+        }
+        return $returnTo;
+    }
 }

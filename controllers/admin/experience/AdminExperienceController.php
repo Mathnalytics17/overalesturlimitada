@@ -26,10 +26,16 @@ class AdminExperienceController extends Controller
             'status' => trim($_GET['status'] ?? ''),
             'experience_type' => trim($_GET['experience_type'] ?? ''),
         ];
+        $pagination = TravelExperience::paginateAdmin(
+            $filters,
+            (int) ($_GET['page'] ?? 1),
+            (int) ($_GET['per_page'] ?? 25)
+        );
 
         return $this->render('admin/experiences/index', [
-            'items' => TravelExperience::adminList($filters, 200),
+            'items' => $pagination['items'],
             'filters' => $filters,
+            'pagination' => $pagination,
             'counts' => [
                 'pending_review' => TravelExperience::countByStatus('pending_review'),
                 'approved' => TravelExperience::countByStatus('approved'),

@@ -12,10 +12,21 @@ use app\Models\TourPackageTag;
 use app\Models\TourPackageTagItem;
 use app\Models\TourPackageItinerary;
 use app\Models\TravelExperience;
+use app\Core\CustomerAuth;
+use app\Core\Csrf;
+use app\Core\Request;
 use app\Core\Flash;
+use app\Services\Package\CustomerPackageService;
 
 class TourPackageController extends Controller
 {
+    protected CustomerPackageService $customerPackages;
+
+    public function __construct()
+    {
+        $this->customerPackages = new CustomerPackageService();
+    }
+
     public function index()
     {
         return $this->render('packagesTourist/list', ['title' => 'Paquetes Turisticos'], 'mainUserLayout');
@@ -46,14 +57,16 @@ class TourPackageController extends Controller
     $limit = max(1, min(24, (int)($_GET['limit'] ?? 6)));
     $q = trim($_GET['q'] ?? '');
 
-    $packages = TourPackage::publishedList($q);
+    $packages = $this->customerPackages->mostVisitedPublished($q);
+    $customerId = $this->customerPackages->currentCustomerId();
+    $favoriteIds = $this->customerPackages->favoritePackageIds($customerId);
     $total = count($packages);
 
     $slice = array_slice($packages, $cursor, $limit);
     $nextCursor = $cursor + count($slice);
     $hasMore = $nextCursor < $total;
 
-    $items = array_map(function ($package) {
+    $items = array_map(function ($package) use ($favoriteIds) {
         $cover = TourPackageImage::coverByPackage((int)$package->id);
         $coverPath = $this->assetUrl($cover->image_path ?? null);
 
@@ -76,6 +89,7 @@ class TourPackageController extends Controller
             'title' => $package->title,
             'image' => $coverPath,
             'badge' => !empty($package->is_featured) ? 'Destacado' : '',
+            'is_favorite' => in_array((int) $package->id, $favoriteIds, true),
             'tags' => $tags,
             'location' => $package->location_name,
             'price_from' => (float)($package->price_from ?? 0),
@@ -89,6 +103,8 @@ class TourPackageController extends Controller
         'nextCursor' => $nextCursor,
         'hasMore' => $hasMore,
         'total' => $total,
+        'authenticated' => $customerId !== null,
+        'csrf' => $customerId !== null ? Csrf::token() : null,
     ], JSON_UNESCAPED_UNICODE);
 
     exit;
@@ -101,8 +117,11 @@ class TourPackageController extends Controller
 
         if (!$package || $package->status !== 'published') {
             http_response_code(404);
-            return $this->render('_404', [], 'mainUserLayout');
+            return $this->render('_404_public', ['title' => 'Página no encontrada | Over Alestur'], 'mainUserLayout');
         }
+
+        $customerId = $this->customerPackages->currentCustomerId();
+        $this->customerPackages->recordView($package);
 
         $cover = TourPackageImage::coverByPackage((int)$package->id);
         $gallery = TourPackageImage::byPackage((int)$package->id);
@@ -135,7 +154,42 @@ $itinerary = TourPackageItinerary::byPackage((int)$package->id);
             'itinerary' => $itinerary,
             'experiences' => TravelExperience::approvedByPackageSlug((string)$package->slug, 3),
             'tags' => $tags,
+            'customer' => $this->currentCustomer(),
+            'isFavorite' => $this->customerPackages->isFavorite($customerId, (int) $package->id),
+            'recommendations' => $customerId
+                ? $this->customerPackages->recommendations($customerId, 3, [(int) $package->id])
+                : [],
             'pageCss' => '/styles/home.css',
         ], 'mainUserLayout');
+    }
+
+    public function toggleFavorite(Request $request)
+    {
+        $account = CustomerAuth::user();
+        if (!$account) {
+            \redirect('/users/login');
+        }
+
+        $packageId = (int) $request->input('package_id', 0);
+        $package = TourPackage::find($packageId);
+
+        if (!$package || (string) $package->status !== 'published') {
+            \redirect('/packagesTourist');
+        }
+
+        $this->customerPackages->toggleFavorite((int) $account->customer_id, $packageId);
+
+        $returnTo = (string) $request->input('return_to', '/packagesTourist');
+        if (!str_starts_with($returnTo, '/') || str_starts_with($returnTo, '//')) {
+            $returnTo = '/packagesTourist';
+        }
+
+        \redirect($returnTo);
+    }
+
+    protected function currentCustomer(): ?\app\Models\Customer
+    {
+        $account = CustomerAuth::user();
+        return $account ? \app\Models\Customer::find((int) $account->customer_id) : null;
     }
 }

@@ -4,14 +4,16 @@ namespace app\Services\Admin\Users;
 
 use PDOException;
 use app\Models\AdminEmailVerification;
+use app\Models\AdminPasswordReset;
+use app\Models\AdminSession;
 use app\Models\AdminUser;
 use app\Services\Mail\AdminMailService;
 
 class AdminUserManagementService
 {
-    public function list(array $filters = []): array
+    public function list(array $filters = [], int $page = 1, int $perPage = 20): array
     {
-        return AdminUser::filter($filters, 300);
+        return AdminUser::paginate($filters, $page, $perPage);
     }
 
     public function create(array $payload, ?AdminUser $actor): array
@@ -50,7 +52,8 @@ class AdminUserManagementService
             ];
         }
 
-        $plainPassword = $data['password'] !== '' ? $data['password'] : $this->generateTemporaryPassword();
+        $passwordWasProvided = $data['password'] !== '';
+        $plainPassword = $passwordWasProvided ? $data['password'] : $this->generateTemporaryPassword(32);
 
         try {
             $user = AdminUser::create([
@@ -107,24 +110,45 @@ class AdminUserManagementService
             AdminEmailVerification::createToken(
                 adminUserId: (int) $user->id,
                 plainToken: $plainVerificationToken,
-                ttlHours: 24
+                ttlHours: 72
             );
 
             $verificationUrl = app_url('/admin/users/confirmUser?token=' . urlencode($plainVerificationToken));
+            $passwordSetupUrl = null;
+
+            if (!$passwordWasProvided) {
+                AdminPasswordReset::invalidateAllByEmail((string) $user->email);
+                $plainPasswordResetToken = random_token(32);
+
+                AdminPasswordReset::createToken(
+                    adminUserId: (int) $user->id,
+                    email: (string) $user->email,
+                    plainToken: $plainPasswordResetToken,
+                    ttlMinutes: 10080
+                );
+
+                $passwordSetupUrl = app_url('/admin/users/resetPassword?token=' . urlencode($plainPasswordResetToken));
+            }
 
             $mailService = new AdminMailService();
 
-            $mailResult = $mailService->sendVerificationEmail(
+            $mailResult = $mailService->sendInvitationEmail(
                 email: $user->email,
                 name: $user->full_name ?? $data['first_name'],
-                verificationUrl: $verificationUrl
+                verificationUrl: $verificationUrl,
+                passwordSetupUrl: $passwordSetupUrl,
+                passwordWasProvided: $passwordWasProvided
             );
+
+            $message = $mailResult['success']
+                ? ($passwordWasProvided
+                    ? 'Usuario creado correctamente. Se envió correo de verificación.'
+                    : 'Usuario creado correctamente. Se envió invitación para verificar correo y crear contraseña.')
+                : 'Usuario creado, pero no fue posible enviar el correo de invitación.';
 
             return [
                 'success' => true,
-                'message' => $mailResult['success']
-                    ? 'Usuario creado correctamente. Se envió correo de verificación.'
-                    : 'Usuario creado, pero no fue posible enviar el correo de verificación.',
+                'message' => $message,
                 'errors' => [],
                 'old' => [],
                 'user' => $user,
@@ -133,7 +157,7 @@ class AdminUserManagementService
         } catch (\Throwable $e) {
             return [
                 'success' => true,
-                'message' => 'Usuario creado correctamente, pero ocurrió un problema al generar o enviar la verificación.',
+                'message' => 'Usuario creado correctamente, pero ocurrió un problema al generar o enviar la invitación.',
                 'errors' => [],
                 'old' => [],
                 'user' => $user,
@@ -189,6 +213,20 @@ class AdminUserManagementService
             ];
         }
 
+        $emailChanged = strcasecmp((string) ($user->email ?? ''), $data['email']) !== 0;
+
+        if ($emailChanged && (int) ($actor->id ?? 0) === $userId) {
+            return [
+                'success' => false,
+                'message' => 'No puedes cambiar tu propio correo desde administración. Usa tu perfil o solicita apoyo técnico.',
+                'errors' => [
+                    'email' => ['No puedes cambiar tu propio correo desde esta vista.'],
+                ],
+                'old' => $payload,
+                'user' => $user,
+            ];
+        }
+
         $updateData = [
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
@@ -200,6 +238,11 @@ class AdminUserManagementService
 
         if ($actor->isSuperAdmin() && in_array($data['status'], ['active', 'inactive', 'blocked', 'pending_verification'], true)) {
             $updateData['status'] = $data['status'];
+        }
+
+        if ($emailChanged) {
+            $updateData['email_verified_at'] = null;
+            $updateData['status'] = 'pending_verification';
         }
 
         if ($data['password'] !== '') {
@@ -232,11 +275,54 @@ class AdminUserManagementService
             ];
         }
 
+        if (!$ok) {
+            return [
+                'success' => false,
+                'message' => 'No fue posible actualizar el usuario.',
+                'errors' => ['general' => ['No fue posible actualizar el usuario.']],
+                'user' => $user,
+            ];
+        }
+
+        $message = 'Usuario actualizado correctamente.';
+
+        if ($data['password'] !== '') {
+            AdminSession::revokeAllByUser($userId);
+            $message = 'Usuario actualizado correctamente. Se cerraron sus sesiones activas por cambio de contraseña.';
+        }
+
+        if ($emailChanged) {
+            AdminSession::revokeAllByUser($userId);
+
+            try {
+                $plainVerificationToken = random_token(32);
+                AdminEmailVerification::createToken(
+                    adminUserId: $userId,
+                    plainToken: $plainVerificationToken,
+                    ttlHours: 72
+                );
+
+                $verificationUrl = app_url('/admin/users/confirmUser?token=' . urlencode($plainVerificationToken));
+                $mailService = new AdminMailService();
+                $mailResult = $mailService->sendVerificationEmail(
+                    email: $data['email'],
+                    name: AdminUser::buildFullName($data['first_name'], $data['last_name']) ?: 'Administrador',
+                    verificationUrl: $verificationUrl
+                );
+
+                $message = $mailResult['success']
+                    ? 'Usuario actualizado. El correo cambió y se envió una nueva verificación. La cuenta queda pendiente hasta verificar el nuevo correo.'
+                    : 'Usuario actualizado. El correo cambió, pero no fue posible enviar la nueva verificación. La cuenta queda pendiente de verificación.';
+            } catch (\Throwable $e) {
+                $message = 'Usuario actualizado. El correo cambió, pero ocurrió un problema al generar la nueva verificación. La cuenta queda pendiente.';
+            }
+        }
+
         return [
-            'success' => $ok,
-            'message' => $ok ? 'Usuario actualizado correctamente.' : 'No fue posible actualizar el usuario.',
-            'errors' => $ok ? [] : ['general' => ['No fue posible actualizar el usuario.']],
-            'user' => $user,
+            'success' => true,
+            'message' => $message,
+            'errors' => [],
+            'user' => AdminUser::find($userId) ?? $user,
         ];
     }
 
@@ -272,12 +358,31 @@ class AdminUserManagementService
             ];
         }
 
-        $ok = $user->delete();
+        try {
+            // Este proyecto usa soft delete para admin_users. Antes de ocultar el registro,
+            // dejamos la cuenta inactiva, revocamos sesiones y liberamos el correo único
+            // para que pueda volver a invitarse el mismo correo si es necesario.
+            $deletedEmail = sprintf('deleted.user.%d.%s@deleted.local', $userId, time());
+
+            AdminSession::revokeAllByUser($userId);
+
+            $updated = $user->update([
+                'email' => $deletedEmail,
+                'phone' => null,
+                'status' => 'inactive',
+                'locked_until' => null,
+                'failed_login_attempts' => 0,
+            ]);
+
+            $ok = $updated && $user->delete();
+        } catch (\Throwable $e) {
+            $ok = false;
+        }
 
         return [
             'success' => $ok,
             'message' => $ok
-                ? 'Usuario eliminado correctamente.'
+                ? 'Usuario eliminado correctamente. La cuenta quedó inactiva, oculta y con sesiones revocadas.'
                 : 'No fue posible eliminar el usuario.',
         ];
     }

@@ -16,6 +16,7 @@ class AdminUser extends Model
         'full_name',
         'email',
         'phone',
+        'profile_photo_path',
         'role',
         'password_hash',
         'status',
@@ -55,9 +56,42 @@ class AdminUser extends Model
 
     public static function filter(array $filters = [], int $limit = 200): array
     {
-        $query = static::query()
+        $rows = static::filteredQuery($filters)
             ->orderBy('id', 'DESC')
-            ->limit($limit);
+            ->limit($limit)
+            ->get();
+
+        return array_map(fn(array $row) => new static($row), $rows);
+    }
+
+    public static function paginate(array $filters = [], int $page = 1, int $perPage = 20): array
+    {
+        $page = max(1, $page);
+        $perPage = max(5, min(100, $perPage));
+        $total = static::filteredQuery($filters)->count();
+        $lastPage = max(1, (int) ceil($total / $perPage));
+        $page = min($page, $lastPage);
+
+        $rows = static::filteredQuery($filters)
+            ->orderBy('id', 'DESC')
+            ->limit($perPage)
+            ->offset(($page - 1) * $perPage)
+            ->get();
+
+        return [
+            'items' => array_map(fn(array $row) => new static($row), $rows),
+            'page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
+            'last_page' => $lastPage,
+            'from' => $total === 0 ? 0 : (($page - 1) * $perPage) + 1,
+            'to' => min($page * $perPage, $total),
+        ];
+    }
+
+    protected static function filteredQuery(array $filters): \app\Core\QueryBuilder
+    {
+        $query = static::query();
 
         if (!empty($filters['status'])) {
             $query->where('status', '=', (string) $filters['status']);
@@ -67,26 +101,14 @@ class AdminUser extends Model
             $query->where('role', '=', (string) $filters['role']);
         }
 
-        $rows = $query->get();
-
         if (!empty($filters['q'])) {
-            $needle = mb_strtolower(trim((string) $filters['q']));
-
-            $rows = array_values(array_filter($rows, static function (array $row) use ($needle): bool {
-                $haystack = mb_strtolower(trim(
-                    ($row['full_name'] ?? '') . ' ' .
-                    ($row['first_name'] ?? '') . ' ' .
-                    ($row['last_name'] ?? '') . ' ' .
-                    ($row['email'] ?? '') . ' ' .
-                    ($row['phone'] ?? '') . ' ' .
-                    ($row['role'] ?? '')
-                ));
-
-                return $haystack !== '' && str_contains($haystack, $needle);
-            }));
+            $query->whereAnyLike(
+                ['full_name', 'first_name', 'last_name', 'email', 'phone', 'role'],
+                trim((string) $filters['q'])
+            );
         }
 
-        return array_map(fn(array $row) => new static($row), $rows);
+        return $query;
     }
 
     public function verifyPassword(string $plainPassword): bool

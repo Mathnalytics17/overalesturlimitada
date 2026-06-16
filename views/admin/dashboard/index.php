@@ -567,12 +567,24 @@ function alert_priority_class(string $priority): string
                 <h4 style="margin:0 0 10px;">Estado de PQRS</h4>
                 <div class="simple-list">
                   <div class="simple-row">
-                    <div class="simple-row-label">Abiertas</div>
+                    <div class="simple-row-label">Abiertas totales</div>
                     <div class="simple-row-value"><?= (int)($pqrs['open'] ?? 0) ?></div>
+                  </div>
+                  <div class="simple-row">
+                    <div class="simple-row-label">Nuevas</div>
+                    <div class="simple-row-value"><?= (int)($pqrs['new'] ?? 0) ?></div>
                   </div>
                   <div class="simple-row">
                     <div class="simple-row-label">En progreso</div>
                     <div class="simple-row-value"><?= (int)($pqrs['in_progress'] ?? 0) ?></div>
+                  </div>
+                  <div class="simple-row">
+                    <div class="simple-row-label">Esperando cliente</div>
+                    <div class="simple-row-value"><?= (int)($pqrs['waiting_customer'] ?? 0) ?></div>
+                  </div>
+                  <div class="simple-row">
+                    <div class="simple-row-label">Resueltas</div>
+                    <div class="simple-row-value"><?= (int)($pqrs['resolved'] ?? 0) ?></div>
                   </div>
                   <div class="simple-row">
                     <div class="simple-row-label">Cerradas</div>

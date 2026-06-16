@@ -24,8 +24,21 @@ class ChatbotController extends Controller
             'per_page' => min(100, max(10, (int) ($_GET['per_page'] ?? 50))),
         ];
 
-        $response = $this->api->contacts($filters);
+        // Algunas APIs de CRM usan `limit` en vez de `per_page`.
+        // Enviamos ambos para que el selector de filas funcione aunque el backend externo solo lea uno.
+        $apiFilters = $filters;
+        $apiFilters['limit'] = $filters['per_page'];
+
+        $response = $this->api->contacts($apiFilters);
         $contacts = $this->normalizeList($response, ['contacts', 'data', 'results']);
+        $pagination = $this->normalizePagination($response, $filters, count($contacts));
+
+        // Defensa visual: si el API ignora per_page y devuelve más registros, la vista respeta
+        // la cantidad elegida por el usuario mientras se corrige el backend externo.
+        if (count($contacts) > (int) $filters['per_page']) {
+            $contacts = array_slice($contacts, 0, (int) $filters['per_page']);
+            $pagination['to'] = min($pagination['from'] + count($contacts) - 1, (int) $pagination['total']);
+        }
 
         return $this->render('admin/chatbot/index', [
             'title' => 'Chatbot WhatsApp',
@@ -36,6 +49,7 @@ class ChatbotController extends Controller
             'filters' => $filters,
             'error' => ($response['ok'] ?? false) ? null : ($response['error'] ?? 'No se pudo cargar la información.'),
             'summary' => $response['summary'] ?? $response['meta'] ?? [],
+            'pagination' => $pagination,
         ], 'adminUserLayout');
     }
 
@@ -136,6 +150,26 @@ class ChatbotController extends Controller
             }
         }
         return [];
+    }
+
+    private function normalizePagination(array $response, array $filters, int $itemCount): array
+    {
+        $meta = $response['pagination'] ?? $response['meta'] ?? $response['summary'] ?? [];
+        $page = max(1, (int) ($meta['page'] ?? $meta['current_page'] ?? $filters['page'] ?? 1));
+        // La fuente de verdad para la UI debe ser el filtro elegido en el select.
+        // Si el API retorna siempre 50 en meta.per_page, no dejamos que pise la selección.
+        $perPage = max(10, (int) ($filters['per_page'] ?? $meta['per_page'] ?? $meta['limit'] ?? 50));
+        $total = max(0, (int) ($meta['total'] ?? $meta['total_count'] ?? $response['total'] ?? $itemCount));
+        $lastPage = max(1, (int) ($meta['last_page'] ?? $meta['total_pages'] ?? ceil($total / $perPage)));
+
+        return [
+            'total' => $total,
+            'page' => min($page, $lastPage),
+            'per_page' => $perPage,
+            'last_page' => $lastPage,
+            'from' => $total > 0 ? (($page - 1) * $perPage) + 1 : 0,
+            'to' => min($page * $perPage, $total),
+        ];
     }
 
     private function consentLabel(array $contact): string

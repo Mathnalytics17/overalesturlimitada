@@ -5,6 +5,7 @@ namespace app\Services\Web\Users;
 use app\Core\CustomerAuth;
 use app\Models\CustomerAccount;
 use app\Models\Customer;
+use app\Services\Profile\ProfilePhotoUploadService;
 
 class CustomerProfileService
 {
@@ -87,7 +88,7 @@ class CustomerProfileService
         ];
     }
     
-public function updateProfile(int $customerId, array $input): array
+public function updateProfile(int $customerId, array $input, array $files = []): array
     {
         $customer = Customer::find($customerId);
 
@@ -134,7 +135,21 @@ public function updateProfile(int $customerId, array $input): array
             ];
         }
 
-        $updated = $customer->update([
+        $photoService = new ProfilePhotoUploadService();
+        $photoResult = $photoService->upload($files['profile_photo'] ?? [], 'customer', $customerId);
+
+        if (!$photoResult['success']) {
+            return [
+                'success' => false,
+                'message' => 'Revisa la foto de perfil.',
+                'errors' => $photoResult['errors'] ?? [],
+                'data' => [],
+            ];
+        }
+
+        $newPhotoPath = $photoResult['path'] ?? null;
+        $oldPhotoPath = $customer->profile_photo_path ?? null;
+        $data = [
             'first_name' => $firstName,
             'last_name' => $lastName,
             'full_name' => trim($firstName . ' ' . $lastName),
@@ -144,9 +159,17 @@ public function updateProfile(int $customerId, array $input): array
             'document_number' => $documentNumber !== '' ? $documentNumber : null,
             'birth_date' => $birthDate !== '' ? $birthDate : null,
             'address' => $address !== '' ? $address : null,
-        ]);
+        ];
+
+        if ($newPhotoPath !== null) {
+            $data['profile_photo_path'] = $newPhotoPath;
+        }
+
+        $updated = $customer->update($data);
 
         if (!$updated) {
+            $photoService->deleteStored($newPhotoPath);
+
             return [
                 'success' => false,
                 'message' => 'No fue posible actualizar el perfil.',
@@ -155,6 +178,10 @@ public function updateProfile(int $customerId, array $input): array
                 ],
                 'data' => [],
             ];
+        }
+
+        if ($newPhotoPath !== null) {
+            $photoService->deleteStored($oldPhotoPath);
         }
 
         return [

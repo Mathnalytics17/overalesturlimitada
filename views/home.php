@@ -170,7 +170,7 @@
             <section class="section">
                 <h2>Experiencias de viajeros</h2>
 
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+                <div class="home-experience-grid">
                     <?php foreach ($experiences as $exp): ?>
                         <?php
                         $coverPath = experience_asset_url($exp->cover_image->image_path ?? null);

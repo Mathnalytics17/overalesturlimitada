@@ -9,6 +9,7 @@ use app\Models\SalesOpportunity;
 use app\Models\SalesOpportunityEvent;
 use app\Services\Admin\Sales\SalesOpportunityService;
 use app\Models\AdminUser;
+use app\Models\Currency;
 use app\Core\Flash;
 class SalesOpportunityController extends Controller
 {
@@ -40,11 +41,16 @@ class SalesOpportunityController extends Controller
         $stage = trim($_GET['stage'] ?? '');
         $assignedAdminId = (int) ($_GET['assigned_admin_id'] ?? 0);
 
-        $items = SalesOpportunity::adminList(
-            $search !== '' ? $search : null,
-            $stage !== '' ? $stage : null,
-            $assignedAdminId > 0 ? $assignedAdminId : null
+        $pagination = SalesOpportunity::paginateAdmin(
+            [
+                'q' => $search,
+                'stage' => $stage,
+                'assigned_admin_id' => $assignedAdminId,
+            ],
+            (int) ($_GET['page'] ?? 1),
+            (int) ($_GET['per_page'] ?? 25)
         );
+        $items = $pagination['items'];
 
         $admins = AdminUser::query()->get();
         $admins = array_map(fn($row) => new AdminUser($row), $admins ?: []);
@@ -55,6 +61,7 @@ class SalesOpportunityController extends Controller
             'stage' => $stage,
             'assignedAdminId' => $assignedAdminId,
             'admins' => $admins,
+            'pagination' => $pagination,
         ], 'adminUserLayout');
     }
 
@@ -114,13 +121,23 @@ class SalesOpportunityController extends Controller
             $assignedAdvisor = AdminUser::find((int) $item->assigned_admin_user_id);
         }
 
+        $currencies = [];
+        try {
+            $currencies = Currency::activeList();
+        } catch (\Throwable $e) {
+            $currencies = [];
+        }
+
         return $this->render('admin/sales/show', [
+            'page_title' => 'Seguimiento de ventas',
+            'page_subtitle' => 'Gestiona oportunidades, cotizaciones, pagos y reservas.',
             'item' => $item,
             'events' => $events,
             'returnTo' => $returnTo,
             'focusNote' => $focusNote,
             'currentAdminId' => $currentAdminId,
             'assignedAdvisor' => $assignedAdvisor,
+            'currencies' => $currencies,
         ], 'adminUserLayout');
     }
 

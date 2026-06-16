@@ -31,11 +31,17 @@ class PqrsController extends Controller
             'q' => trim((string) $request->input('q', '')),
         ];
 
-        $cases = PqrsCase::filter($filters, 200);
+        $pagination = PqrsCase::paginate(
+            $filters,
+            (int) $request->input('page', 1),
+            (int) $request->input('per_page', 25)
+        );
+        $cases = $pagination['items'];
 
         return $this->render('admin/pqrs/index', [
             'cases' => $cases,
             'filters' => $filters,
+            'pagination' => $pagination,
         ], 'adminUserLayout');
     }
 
@@ -46,7 +52,7 @@ class PqrsController extends Controller
 
         if (!$case) {
             http_response_code(404);
-            return $this->render('_404', [], 'adminUserLayout');
+            return $this->render('_404_admin', ['page_title' => 'Página no encontrada', 'page_subtitle' => 'El registro solicitado no existe.'], 'adminUserLayout');
         }
 
         $assignedAdvisor = null;

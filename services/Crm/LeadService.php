@@ -10,7 +10,7 @@ use app\Services\Mail\InboxMailService;
 
 class LeadService
 {
-    public function createFromWebForm(string $sourceType, array $payload): array
+    public function createFromWebForm(string $sourceType, array $payload, ?int $customerId = null): array
     {
         $normalized = $this->normalizePayload($sourceType, $payload);
         $errors = $this->validate($sourceType, $normalized, $payload);
@@ -24,6 +24,7 @@ class LeadService
         }
 
         $leadData = [
+            'customer_id' => $customerId,
             'full_name' => $normalized['full_name'],
             'email' => $normalized['email'],
             'phone' => $normalized['phone'],

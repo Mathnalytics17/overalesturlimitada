@@ -24,6 +24,24 @@ class AdminLoginLog extends Model
         'admin_user_id' => 'int',
     ];
 
+
+
+    public static function lastSuccessfulLoginAt(int $adminUserId): ?string
+    {
+        if ($adminUserId <= 0) {
+            return null;
+        }
+
+        $row = static::query()
+            ->select('created_at')
+            ->where('admin_user_id', '=', $adminUserId)
+            ->where('status', '=', 'success')
+            ->orderBy('created_at', 'DESC')
+            ->first();
+
+        return $row['created_at'] ?? null;
+    }
+
     public static function log(
         ?int $adminUserId,
         ?string $emailAttempted,

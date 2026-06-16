@@ -1,49 +1,77 @@
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const dropdown = document.getElementById("servicesDropdown");
-  if (dropdown) {
-    const button = dropdown.querySelector(".dropbtn");
-    const menu = dropdown.querySelector(".dropdown-menu");
+  document.addEventListener("DOMContentLoaded", () => {
+    const dropdown = document.getElementById("servicesDropdown");
+    if (dropdown) {
+      const button = dropdown.querySelector(".dropbtn");
+      const menu = dropdown.querySelector(".dropdown-menu");
 
-    button.addEventListener("click", (e) => {
-      e.stopPropagation();
-      dropdown.classList.toggle("open");
-    });
+      button.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle("open");
+      });
 
-    document.addEventListener("click", () => {
-      dropdown.classList.remove("open");
-    });
+      document.addEventListener("click", () => {
+        dropdown.classList.remove("open");
+      });
 
-    menu.addEventListener("click", (e) => e.stopPropagation());
-  }
+      menu.addEventListener("click", (e) => e.stopPropagation());
+    }
 
-  const userDropdown = document.getElementById("userDropdown");
-  if (userDropdown) {
-    const userButton = userDropdown.querySelector(".user-btn");
-    const userMenu = userDropdown.querySelector(".user-menu");
+    const userDropdown = document.getElementById("userDropdown");
+    if (userDropdown) {
+      const userButton = userDropdown.querySelector(".user-btn");
+      const userMenu = userDropdown.querySelector(".user-menu");
 
-    userButton.addEventListener("click", (e) => {
-      e.stopPropagation();
-      userDropdown.classList.toggle("open");
-    });
+      userButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        userDropdown.classList.toggle("open");
+      });
 
-    document.addEventListener("click", () => {
-      userDropdown.classList.remove("open");
-    });
+      document.addEventListener("click", () => {
+        userDropdown.classList.remove("open");
+      });
 
-    userMenu.addEventListener("click", (e) => e.stopPropagation());
-  }
-});
+      userMenu.addEventListener("click", (e) => e.stopPropagation());
+    }
+
+    const navbar = document.getElementById("publicNavbar");
+    const navToggle = document.getElementById("publicNavToggle");
+    const navLinks = document.getElementById("publicNavLinks");
+
+    if (navbar && navToggle && navLinks) {
+      navToggle.addEventListener("click", () => {
+        const isOpen = navbar.classList.toggle("mobile-open");
+        navToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      });
+
+      navLinks.addEventListener("click", (event) => {
+        if (event.target.closest("a")) {
+          navbar.classList.remove("mobile-open");
+          navToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+  });
 </script>
 
 <header class="topbar">
   <nav class="navbar">
-    <div class="navbar-container">
+    <div class="navbar-container" id="publicNavbar">
+      <button
+        type="button"
+        class="navbar-mobile-toggle"
+        id="publicNavToggle"
+        aria-expanded="false"
+        aria-controls="publicNavLinks">
+        <i class="fa-solid fa-bars"></i>
+        <span>Menu</span>
+      </button>
 
-      <div>
+      <div class="navbar-links" id="publicNavLinks">
         <ul>
           <li><a href="/"><i class="fa-regular fa-house"></i></a></li>
           <li><a href="/aboutUs">Nosotros</a></li>
+
 
           <li class="dropdown" id="servicesDropdown">
             <button type="button" class="dropbtn" aria-expanded="false" aria-controls="servicesMenu">
@@ -58,13 +86,14 @@ document.addEventListener("DOMContentLoaded", () => {
           </li>
 
           <li><a href="/contact">Contáctanos</a></li>
-             <li><a href="/experiences">Experiencias</a></li>
-      <li><a href="/pqrs">PQRS</a></li>
+          <li><a href="/experiences">Experiencias</a></li>
+          <li><a href="/pqrs">PQRS</a></li>
+
 
         </ul>
       </div>
 
-      <div style="display:flex; align-items:center; gap:14px;">
+      <div class="navbar-actions">
 
         <div class="dropdown user-dropdown" id="userDropdown">
           <button type="button" class="user-btn" style="background:none;border:none;cursor:pointer;">
@@ -101,8 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     border:none;
                     cursor:pointer;
                     color:#b91c1c;
-                  "
-                >
+                  ">
                   Cerrar sesión
                 </button>
               </form>
@@ -118,10 +146,10 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
 
-       
+
 
         <div>
-          <img class="image-colombia" src="/img/header/image (29).png"/>
+          <img class="image-colombia" src="/img/header/image (29).png" />
         </div>
 
       </div>
@@ -130,91 +158,91 @@ document.addEventListener("DOMContentLoaded", () => {
 </header>
 
 <style>
-#servicesDropdown {
-  position: relative;
-}
+  #servicesDropdown {
+    position: relative;
+  }
 
-#servicesDropdown .dropdown-menu {
-  display: none;
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
-  min-width: 220px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(0,0,0,.08);
-  padding: 10px 0;
-  z-index: 999;
-  list-style: none;
-  margin: 0;
-}
+  #servicesDropdown .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    min-width: 220px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .08);
+    padding: 10px 0;
+    z-index: 999;
+    list-style: none;
+    margin: 0;
+  }
 
-#servicesDropdown.open .dropdown-menu {
-  display: block;
-}
+  #servicesDropdown.open .dropdown-menu {
+    display: block;
+  }
 
-#servicesDropdown .dropdown-menu li {
-  list-style: none;
-}
+  #servicesDropdown .dropdown-menu li {
+    list-style: none;
+  }
 
-#servicesDropdown .dropdown-menu li a {
-  display: block;
-  padding: 10px 14px;
-  text-decoration: none;
-  color: #111 !important;
-}
+  #servicesDropdown .dropdown-menu li a {
+    display: block;
+    padding: 10px 14px;
+    text-decoration: none;
+    color: #111 !important;
+  }
 
-#servicesDropdown .dropdown-menu li a:hover {
-  background: #f5f5f5;
-  color: #b61f2a !important;
-}
+  #servicesDropdown .dropdown-menu li a:hover {
+    background: #f5f5f5;
+    color: #b61f2a !important;
+  }
 
-#userDropdown .user-menu {
-  display: none;
-}
+  #userDropdown .user-menu {
+    display: none;
+  }
 
-#userDropdown.open .user-menu {
-  display: block !important;
-}
+  #userDropdown.open .user-menu {
+    display: block !important;
+  }
 
-#userDropdown {
-  position: relative;
-}
+  #userDropdown {
+    position: relative;
+  }
 
-/* Solo menú principal en blanco */
-.navbar > .navbar-container > div:first-child > ul,
-.navbar > .navbar-container > div:first-child > ul > li,
-.navbar > .navbar-container > div:first-child > ul > li > a,
-.navbar .dropbtn,
-.navbar .fa-house,
-.navbar .fa-user,
-.navbar .fa-globe {
-  color: #fff !important;
-}
+  /* Solo menú principal en blanco */
+  .navbar .navbar-links>ul,
+  .navbar .navbar-links>ul>li,
+  .navbar .navbar-links>ul>li>a,
+  .navbar .dropbtn,
+  .navbar .fa-house,
+  .navbar .fa-user,
+  .navbar .fa-globe {
+    color: #fff !important;
+  }
 
-.navbar ul li a {
-  text-decoration: none;
-}
+  .navbar ul li a {
+    text-decoration: none;
+  }
 
-.navbar .dropbtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font: inherit;
-}
+  .navbar .dropbtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+  }
 
-.navbar > .navbar-container > div:first-child > ul > li > a:hover,
-.navbar .dropbtn:hover {
-  color: #fff !important;
-  opacity: .9;
-}
+  .navbar .navbar-links>ul>li>a:hover,
+  .navbar .dropbtn:hover {
+    color: #fff !important;
+    opacity: .9;
+  }
 
-.user-btn {
-  color: #fff !important;
-}
+  .user-btn {
+    color: #fff !important;
+  }
 
-.image-colombia {
-  display: block;
-}
+  .image-colombia {
+    display: block;
+  }
 </style>

@@ -23,6 +23,7 @@ class Customer extends Model
         'country_id',
         'city_id',
         'address',
+        'profile_photo_path',
         'status',
         'source',
         'notes',

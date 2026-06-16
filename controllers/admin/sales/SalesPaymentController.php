@@ -26,13 +26,19 @@ class SalesPaymentController extends Controller
         $opportunityId = (int)($_POST['sales_opportunity_id'] ?? 0);
         $admin = AdminAuth::user();
 
-        $this->service->reportPayment(
+        $result = $this->service->reportPayment(
             $opportunityId,
             $_POST,
             $admin?->id ? (int)$admin->id : null
         );
 
-        \redirect('/admin/sales/show?id=' . $opportunityId);
+        if (!empty($result['success'])) {
+            Flash::success($result['message'] ?? 'Pago reportado correctamente.');
+        } else {
+            Flash::error($result['message'] ?? 'No fue posible registrar el pago.');
+        }
+
+        \redirect($this->safeReturnTo($_POST['return_to'] ?? '', '/admin/sales/show?id=' . $opportunityId));
     }
 
     public function verify()
@@ -46,9 +52,14 @@ class SalesPaymentController extends Controller
         $opportunityId = (int)($_POST['sales_opportunity_id'] ?? 0);
         $admin = AdminAuth::user();
 
-        $this->service->verifyPayment($paymentId, $admin?->id ? (int)$admin->id : null);
+        $result = $this->service->verifyPayment($paymentId, $admin?->id ? (int)$admin->id : null);
+        if (!empty($result['success'])) {
+            Flash::success($result['message'] ?? 'Pago validado correctamente.');
+        } else {
+            Flash::error($result['message'] ?? 'No fue posible validar el pago.');
+        }
 
-        \redirect('/admin/sales/show?id=' . $opportunityId);
+        \redirect($this->safeReturnTo($_POST['return_to'] ?? '', '/admin/sales/show?id=' . $opportunityId));
     }
 
     public function reject()
@@ -64,9 +75,22 @@ class SalesPaymentController extends Controller
         $admin = AdminAuth::user();
 
         if ($reason !== '') {
-            $this->service->rejectPayment($paymentId, $reason, $admin?->id ? (int)$admin->id : null);
+            $ok = $this->service->rejectPayment($paymentId, $reason, $admin?->id ? (int)$admin->id : null);
+            $ok ? Flash::success('Pago rechazado correctamente.') : Flash::error('No fue posible rechazar el pago.');
+        } else {
+            Flash::error('Debes indicar el motivo del rechazo.');
         }
 
-        \redirect('/admin/sales/show?id=' . $opportunityId);
+        \redirect($this->safeReturnTo($_POST['return_to'] ?? '', '/admin/sales/show?id=' . $opportunityId));
     }
+
+    protected function safeReturnTo(string $returnTo, string $fallback): string
+    {
+        $returnTo = trim($returnTo);
+        if ($returnTo === '' || !str_starts_with($returnTo, '/admin')) {
+            return $fallback;
+        }
+        return $returnTo;
+    }
+
 }

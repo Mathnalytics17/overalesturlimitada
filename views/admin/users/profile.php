@@ -12,6 +12,23 @@
 
     <div class="sep"></div>
 
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px;">
+      <?php if (profile_photo_url($user->profile_photo_path ?? null)): ?>
+        <img
+          src="<?= htmlspecialchars(profile_photo_url($user->profile_photo_path)) ?>"
+          alt="Foto de perfil"
+          style="width:88px; height:88px; border-radius:999px; object-fit:cover; border:1px solid #dbe3ef;">
+      <?php else: ?>
+        <div style="width:88px; height:88px; border-radius:999px; display:grid; place-items:center; background:#f1f5f9; border:1px solid #dbe3ef; font-size:28px; font-weight:800;">
+          <?= htmlspecialchars(strtoupper(substr((string) ($user->first_name ?? $user->email ?? 'A'), 0, 1))) ?>
+        </div>
+      <?php endif; ?>
+      <div>
+        <strong><?= htmlspecialchars((string) ($user->full_name ?? 'Administrador')) ?></strong>
+        <div style="color:#64748b; margin-top:4px;">Foto visible en tu cuenta administrativa.</div>
+      </div>
+    </div>
+
     <div class="form">
       <div class="field">
         <label>Nombres</label>

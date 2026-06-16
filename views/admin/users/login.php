@@ -8,17 +8,19 @@ $old = $old ?? [];
 
 function admin_login_error(array $errors, string $field): ?string
 {
-    return $errors[$field][0] ?? null;
+  return $errors[$field][0] ?? null;
 }
 ?>
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login Admin</title>
   <link rel="stylesheet" href="/styles/admin.css" />
 </head>
+
 <body>
   <div class="login">
     <div class="login-left">
@@ -41,8 +43,7 @@ function admin_login_error(array $errors, string $field): ?string
               id="email"
               name="email"
               type="email"
-              value="<?= htmlspecialchars($old['email'] ?? '') ?>"
-            >
+              value="<?= htmlspecialchars($old['email'] ?? '') ?>">
             <?php if (admin_login_error($errors, 'email')): ?>
               <small style="color:#b91c1c;"><?= htmlspecialchars(admin_login_error($errors, 'email')) ?></small>
             <?php endif; ?>
@@ -66,6 +67,10 @@ function admin_login_error(array $errors, string $field): ?string
             <?= turnstile_widget_html(); ?>
           </div>
 
+          <div>
+            <a href="/admin/users/forgotPassword" style="color:#2563eb; font-size:14px;">¿Olvidaste tu contraseña?</a>
+          </div>
+
           <button class="btn primary" style="width:100%;" type="submit">Entrar</button>
         </form>
       </div>
@@ -74,4 +79,5 @@ function admin_login_error(array $errors, string $field): ?string
     <div class="login-right"></div>
   </div>
 </body>
+
 </html>

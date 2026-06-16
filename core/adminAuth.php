@@ -62,7 +62,7 @@ class AdminAuth
             plainToken: $plainToken,
             ipAddress: $ipAddress,
             userAgent: $userAgent,
-            ttlHours: 24
+            ttlHours: max(1, env_int('ADMIN_SESSION_TTL_HOURS', 24))
         );
 
         if (!$dbSession) {

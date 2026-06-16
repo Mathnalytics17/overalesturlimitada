@@ -4,6 +4,7 @@ $search = $search ?? '';
 $stage = $stage ?? '';
 $assignedAdminId = $assignedAdminId ?? 0;
 $admins = $admins ?? [];
+$pagination = $pagination ?? [];
 
 $adminMap = [];
 foreach ($admins as $admin) {
@@ -72,7 +73,7 @@ function sales_temperature_label(string $temp): string
 
   .sales-toolbar form {
     display:grid;
-    grid-template-columns: 1.2fr .8fr .9fr auto auto;
+    grid-template-columns: 1.2fr .8fr .9fr .7fr auto auto;
     gap:12px;
     align-items:end;
   }
@@ -233,14 +234,14 @@ function sales_temperature_label(string $temp): string
 
 <div class="app">
   <main class="main">
-    
+
       <div class="top-left">
         <div class="page-title">
           <h1>Seguimiento de ventas</h1>
           <p>Gestiona oportunidades comerciales, seguimiento y cierre.</p>
         </div>
       </div>
-    
+
 
     <a href="/admin/sales/create" class="btn-main">Nueva oportunidad</a>
 
@@ -284,6 +285,15 @@ function sales_temperature_label(string $temp): string
                 <option value="<?= (int) $admin->id ?>" <?= (int) $assignedAdminId === (int) $admin->id ? 'selected' : '' ?>>
                   <?= htmlspecialchars($admin->full_name ?? $admin->name ?? $admin->email ?? ('Admin #' . (int) $admin->id)) ?>
                 </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+
+          <div>
+            <label for="per_page">Filas</label>
+            <select id="per_page" name="per_page">
+              <?php foreach ([10, 25, 50, 100] as $size): ?>
+                <option value="<?= $size ?>" <?= (int) ($pagination['per_page'] ?? 25) === $size ? 'selected' : '' ?>><?= $size ?></option>
               <?php endforeach; ?>
             </select>
           </div>
@@ -416,6 +426,16 @@ function sales_temperature_label(string $temp): string
             </table>
           </div>
         <?php endif; ?>
+        <?php
+          $paginationBaseUrl = '/admin/sales';
+          $paginationFilters = [
+            'q' => $search,
+            'stage' => $stage,
+            'assigned_admin_id' => $assignedAdminId,
+            'per_page' => $pagination['per_page'] ?? 25,
+          ];
+          require dirname(__DIR__, 3) . '/shared/partials/admin_pagination.php';
+        ?>
       </div>
     </section>
   </main>

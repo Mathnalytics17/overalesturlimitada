@@ -4,10 +4,11 @@ namespace app\Services\Admin\Users;
 
 use app\Core\AdminAuth;
 use app\Models\AdminUser;
+use app\Services\Profile\ProfilePhotoUploadService;
 
 class AdminProfileService
 {
-    public function updateProfile(int $adminUserId, array $input): array
+    public function updateProfile(int $adminUserId, array $input, array $files = []): array
     {
         $user = AdminUser::find($adminUserId);
 
@@ -44,13 +45,35 @@ class AdminProfileService
             ];
         }
 
-        $updated = $user->update([
+        $photoService = new ProfilePhotoUploadService();
+        $photoResult = $photoService->upload($files['profile_photo'] ?? [], 'admin', $adminUserId);
+
+        if (!$photoResult['success']) {
+            return [
+                'success' => false,
+                'message' => 'Revisa la foto de perfil.',
+                'errors' => $photoResult['errors'] ?? [],
+                'data' => [],
+            ];
+        }
+
+        $newPhotoPath = $photoResult['path'] ?? null;
+        $oldPhotoPath = $user->profile_photo_path ?? null;
+        $data = [
             'first_name' => $firstName,
             'last_name' => $lastName,
             'full_name' => trim($firstName . ' ' . $lastName),
-        ]);
+        ];
+
+        if ($newPhotoPath !== null) {
+            $data['profile_photo_path'] = $newPhotoPath;
+        }
+
+        $updated = $user->update($data);
 
         if (!$updated) {
+            $photoService->deleteStored($newPhotoPath);
+
             return [
                 'success' => false,
                 'message' => 'No fue posible actualizar el perfil.',
@@ -59,6 +82,10 @@ class AdminProfileService
                 ],
                 'data' => [],
             ];
+        }
+
+        if ($newPhotoPath !== null) {
+            $photoService->deleteStored($oldPhotoPath);
         }
 
         return [

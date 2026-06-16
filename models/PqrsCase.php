@@ -3,6 +3,8 @@
 namespace app\Models;
 
 use app\Core\Model;
+use app\Core\Paginator;
+use app\Core\QueryBuilder;
 
 class PqrsCase extends Model
 {
@@ -46,7 +48,24 @@ class PqrsCase extends Model
 
     public static function filter(array $filters = [], int $limit = 100): array
     {
-        $query = static::query()->orderBy('id', 'DESC')->limit($limit);
+        $rows = static::filteredQuery($filters)->limit($limit)->get();
+
+        return array_map(fn(array $row) => new static($row), $rows);
+    }
+
+    public static function paginate(array $filters = [], int $page = 1, int $perPage = 25): array
+    {
+        return Paginator::fromQuery(
+            static::filteredQuery($filters),
+            $page,
+            $perPage,
+            fn(array $row) => new static($row)
+        );
+    }
+
+    protected static function filteredQuery(array $filters): QueryBuilder
+    {
+        $query = static::query()->orderBy('id', 'DESC');
 
         if (!empty($filters['status'])) {
             $query->where('status', '=', (string) $filters['status']);
@@ -60,55 +79,42 @@ class PqrsCase extends Model
             $query->where('assigned_admin_user_id', '=', (int) $filters['assigned_admin_user_id']);
         }
 
-        $rows = $query->get();
-
         if (!empty($filters['q'])) {
-            $needle = mb_strtolower((string) $filters['q']);
-            $rows = array_values(array_filter($rows, static function (array $row) use ($needle): bool {
-                $haystack = mb_strtolower(trim(
-                    ($row['radicado'] ?? '') . ' ' .
-                    ($row['full_name'] ?? '') . ' ' .
-                    ($row['email'] ?? '') . ' ' .
-                    ($row['phone'] ?? '') . ' ' .
-                    ($row['subject'] ?? '')
-                ));
-
-                return $haystack !== '' && str_contains($haystack, $needle);
-            }));
+            $query->whereAnyLike(['radicado', 'full_name', 'email', 'phone', 'subject'], trim((string) $filters['q']));
         }
 
-        return array_map(fn(array $row) => new static($row), $rows);
+        return $query;
     }
+
+    public const OPEN_STATUSES = ['new', 'in_progress', 'waiting_customer'];
 
     public static function countOpen(): int
-{
-    return static::countByStatus('open');
-}
-
-public static function countByStatus(string $status): int
-{
-    $rows = static::query()->get();
-    $count = 0;
-
-    foreach ($rows as $row) {
-        if ((string)($row['status'] ?? '') === $status) {
-            $count++;
-        }
+    {
+        return static::query()
+            ->whereIn('status', self::OPEN_STATUSES)
+            ->count();
     }
 
-    return $count;
-}
+    public static function countByStatus(string $status): int
+    {
+        if ($status === 'open') {
+            return static::countOpen();
+        }
 
-public static function recentOpen(int $limit = 5): array
-{
-    $rows = static::query()->get();
+        return static::query()
+            ->where('status', '=', $status)
+            ->count();
+    }
 
-    $items = array_filter(array_map(fn($row) => new static($row), $rows ?: []), function ($item) {
-        return (string)($item->status ?? '') === 'open';
-    });
+    public static function recentOpen(int $limit = 5): array
+    {
+        $rows = static::query()
+            ->whereIn('status', self::OPEN_STATUSES)
+            ->orderBy('id', 'DESC')
+            ->limit($limit)
+            ->get();
 
-    usort($items, fn($a, $b) => (int)$b->id <=> (int)$a->id);
+        return array_map(fn($row) => new static($row), $rows ?: []);
+    }
 
-    return array_slice(array_values($items), 0, $limit);
-}
 }

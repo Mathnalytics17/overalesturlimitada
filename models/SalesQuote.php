@@ -34,4 +34,28 @@ class SalesQuote extends Model
 
         return array_values($items);
     }
+
+    public static function acceptedByOpportunity(int $opportunityId): ?static
+    {
+        $items = static::byOpportunity($opportunityId);
+
+        foreach ($items as $item) {
+            if ((string)($item->status ?? '') === 'accepted') {
+                return $item;
+            }
+        }
+
+        return null;
+    }
+
+    public static function currentForOpportunity(int $opportunityId): ?static
+    {
+        $accepted = static::acceptedByOpportunity($opportunityId);
+        if ($accepted) {
+            return $accepted;
+        }
+
+        $items = static::byOpportunity($opportunityId);
+        return $items[0] ?? null;
+    }
 }

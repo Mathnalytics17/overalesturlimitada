@@ -49,6 +49,12 @@
   background:#f7f7f7;
   position:relative;
 }
+    .favorite-form{position:absolute;top:10px;right:10px;z-index:2;margin:0;}
+    .favorite-btn{
+      width:38px;height:38px;border:0;border-radius:999px;background:#fff;color:#b61f2a;
+      box-shadow:0 4px 14px rgba(0,0,0,.18);font-size:20px;cursor:pointer;
+    }
+    .favorite-btn.active{background:#b61f2a;color:#fff;}
 
 .thumb img{
   width:100%;
@@ -131,6 +137,8 @@
     let loading = false;
     let hasMore = true;
     let query = "";
+    let authenticated = false;
+    let csrf = "";
 
     function skeletonCardHTML(){
       return `
@@ -168,11 +176,21 @@
     function cardHTML(pkg){
       const tags = (pkg.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("");
       const badge = pkg.badge ? `<div class="badge">${escapeHtml(pkg.badge)}</div>` : "";
+      const favorite = authenticated ? `
+        <form class="favorite-form" method="post" action="/packagesTourist/favorite">
+          <input type="hidden" name="_csrf" value="${escapeAttr(csrf)}">
+          <input type="hidden" name="package_id" value="${Number(pkg.id)}">
+          <input type="hidden" name="return_to" value="/packagesTourist">
+          <button class="favorite-btn ${pkg.is_favorite ? "active" : ""}" type="submit" aria-label="${pkg.is_favorite ? "Quitar de favoritos" : "Guardar en favoritos"}">
+            ${pkg.is_favorite ? "♥" : "♡"}
+          </button>
+        </form>` : "";
 
       return `
         <article class="card">
           <div class="thumb">
             ${badge}
+            ${favorite}
             <img src="${escapeAttr(pkg.image)}" alt="${escapeAttr(pkg.title)}" loading="lazy">
           </div>
           <div class="card-body">
@@ -240,6 +258,8 @@
         });
 
         removeSkeletons();
+        authenticated = Boolean(res.authenticated);
+        csrf = res.csrf || "";
         appendCards(res.items || []);
 
         cursor = res.nextCursor || 0;
@@ -249,6 +269,7 @@
       }catch(err){
         console.error(err);
         removeSkeletons();
+        hasMore = false;
         statusEl.textContent = "Error cargando paquetes. Intenta nuevamente.";
       }finally{
         loading = false;

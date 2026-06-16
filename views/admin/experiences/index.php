@@ -2,6 +2,7 @@
 $items = $items ?? [];
 $filters = $filters ?? [];
 $counts = $counts ?? [];
+$pagination = $pagination ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -9,44 +10,49 @@ $counts = $counts ?? [];
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Experiencias</title>
-  <link rel="stylesheet" href="/public/styles/admin.css">
+  <link rel="stylesheet" href="/styles/admin.css">
 </head>
 <body>
   <div class="app">
     <main class="main">
-      
+
         <div class="top-left">
           <div class="page-title">
             <h1>Experiencias</h1>
             <p>Moderación de testimonios y relatos de clientes.</p>
           </div>
         </div>
-  
+
 
       <section class="content">
         <div class="card">
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;">
+          <div class="admin-stat-grid">
             <div class="stat-card"><div>Pendientes</div><strong><?= (int)($counts['pending_review'] ?? 0) ?></strong></div>
             <div class="stat-card"><div>Aprobadas</div><strong><?= (int)($counts['approved'] ?? 0) ?></strong></div>
             <div class="stat-card"><div>Rechazadas</div><strong><?= (int)($counts['rejected'] ?? 0) ?></strong></div>
             <div class="stat-card"><div>Archivadas</div><strong><?= (int)($counts['archived'] ?? 0) ?></strong></div>
           </div>
 
-          <form method="GET" action="/admin/experiences" style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;margin-bottom:18px;">
+          <form method="GET" action="/admin/experiences" class="admin-filter-grid">
             <input type="text" name="q" placeholder="Buscar por cliente, título o texto" value="<?= htmlspecialchars((string)($filters['q'] ?? '')) ?>">
             <select name="status">
               <option value="">Todos los estados</option>
-              <option value="pending_review">Pendiente</option>
-              <option value="approved">Aprobada</option>
-              <option value="rejected">Rechazada</option>
-              <option value="archived">Archivada</option>
+              <option value="pending_review" <?= ($filters['status'] ?? '') === 'pending_review' ? 'selected' : '' ?>>Pendiente</option>
+              <option value="approved" <?= ($filters['status'] ?? '') === 'approved' ? 'selected' : '' ?>>Aprobada</option>
+              <option value="rejected" <?= ($filters['status'] ?? '') === 'rejected' ? 'selected' : '' ?>>Rechazada</option>
+              <option value="archived" <?= ($filters['status'] ?? '') === 'archived' ? 'selected' : '' ?>>Archivada</option>
             </select>
             <select name="experience_type">
               <option value="">Todos los tipos</option>
-              <option value="general">General</option>
-              <option value="package">Paquete</option>
-              <option value="tickets">Tiquetes</option>
-              <option value="extra_service">Servicio extra</option>
+              <option value="general" <?= ($filters['experience_type'] ?? '') === 'general' ? 'selected' : '' ?>>General</option>
+              <option value="package" <?= ($filters['experience_type'] ?? '') === 'package' ? 'selected' : '' ?>>Paquete</option>
+              <option value="tickets" <?= ($filters['experience_type'] ?? '') === 'tickets' ? 'selected' : '' ?>>Tiquetes</option>
+              <option value="extra_service" <?= ($filters['experience_type'] ?? '') === 'extra_service' ? 'selected' : '' ?>>Servicio extra</option>
+            </select>
+            <select name="per_page" aria-label="Registros por pagina">
+              <?php foreach ([10, 25, 50, 100] as $size): ?>
+                <option value="<?= $size ?>" <?= (int) ($pagination['per_page'] ?? 25) === $size ? 'selected' : '' ?>><?= $size ?> por pagina</option>
+              <?php endforeach; ?>
             </select>
             <button class="btn primary" type="submit">Filtrar</button>
           </form>
@@ -96,6 +102,11 @@ $counts = $counts ?? [];
               </tbody>
             </table>
           </div>
+          <?php
+            $paginationBaseUrl = '/admin/experiences';
+            $paginationFilters = array_merge($filters, ['per_page' => $pagination['per_page'] ?? 25]);
+            require dirname(__DIR__, 3) . '/shared/partials/admin_pagination.php';
+          ?>
         </div>
       </section>
     </main>

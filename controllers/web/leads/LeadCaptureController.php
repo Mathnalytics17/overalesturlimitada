@@ -3,9 +3,11 @@
 namespace app\Controllers\web\leads;
 
 use app\Core\Controller;
+use app\Core\CustomerAuth;
 use app\Core\RateLimiter;
 use app\Core\Request;
 use app\Services\Crm\LeadService;
+use app\Services\Package\CustomerPackageService;
 
 class LeadCaptureController extends Controller
 {
@@ -55,7 +57,9 @@ class LeadCaptureController extends Controller
         ], 'mainUserLayout');
     }
 
-    $result = $this->service->createFromWebForm('package', $request->getBody());
+    $account = CustomerAuth::user();
+    $customerId = $account ? (int) $account->customer_id : null;
+    $result = $this->service->createFromWebForm('package', $request->getBody(), $customerId);
 
     $this->registerRateLimitAttempt('lead_package_submit', $request, 1800);
 
@@ -69,6 +73,11 @@ class LeadCaptureController extends Controller
             'old' => $result['old'] ?? [],
         ], 'mainUserLayout');
     }
+
+    (new CustomerPackageService())->recordInquiry(
+        (int) ($request->input('package_id') ?? 0),
+        $customerId
+    );
 
     return $this->render('packagesTourist/inquiryResult', [
         'success' => true,

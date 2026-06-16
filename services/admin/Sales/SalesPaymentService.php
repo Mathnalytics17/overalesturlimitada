@@ -4,6 +4,8 @@ namespace app\Services\Admin\Sales;
 
 use app\Models\SalesOpportunity;
 use app\Models\SalesPayment;
+use app\Models\SalesOrder;
+use app\Models\SalesQuote;
 use app\Models\SalesOpportunityEvent;
 
 class SalesPaymentService
@@ -115,12 +117,37 @@ protected function validateManualPayload(array $data): array
         }
 
         $data = $this->normalize($payload);
-        $errors = $this->validateReport($data);
+        $currentQuote = SalesQuote::acceptedByOpportunity($opportunityId);
+        $order = SalesOrder::findByOpportunityId($opportunityId);
+        $quotedAmount = $currentQuote ? (float)$currentQuote->amount : (float)($opportunity->quoted_amount ?? 0);
+        $quotedCurrency = $currentQuote ? (string)$currentQuote->currency : ((string)($opportunity->quoted_currency ?? 'COP') ?: 'COP');
+        $verifiedTotal = SalesPayment::sumVerifiedByOpportunity($opportunityId);
+        $committedTotal = SalesPayment::sumCommittedByOpportunity($opportunityId);
+        $verifiedBalance = max(0, $quotedAmount - $verifiedTotal);
+        $availableToReport = max(0, $quotedAmount - $committedTotal);
+
+        if (in_array($data['payment_kind'], ['full', 'balance'], true) && $data['amount'] <= 0 && $availableToReport > 0) {
+            $data['amount'] = $availableToReport;
+        }
+
+        if ($data['currency'] === '') {
+            $data['currency'] = $quotedCurrency;
+        }
+
+        $errors = $this->validateReport($data, $quotedAmount, $availableToReport, $verifiedTotal);
+
+        if (!$currentQuote && $data['payment_kind'] !== 'refund') {
+            $errors['quote'][] = 'Primero debes aceptar una cotización antes de registrar pagos.';
+        }
+
+        if (!$order && $data['payment_kind'] !== 'refund') {
+            $errors['order'][] = 'Primero confirma la venta/reserva. El pago debe quedar asociado a una venta activa.';
+        }
 
         if (!empty($errors)) {
             return [
                 'success' => false,
-                'message' => 'Revisa los datos del pago.',
+                'message' => $this->firstError($errors) ?: 'Revisa los datos del pago.',
                 'errors' => $errors,
             ];
         }
@@ -132,7 +159,7 @@ protected function validateManualPayload(array $data): array
             'amount' => $data['amount'],
             'currency' => $data['currency'],
             'payment_method' => $data['payment_method'],
-            'payment_reference' => $data['payment_reference'],
+            'payment_reference' => null,
             'proof_file_path' => null,
             'status' => 'reported',
             'reported_by_admin_id' => $adminId,
@@ -150,8 +177,17 @@ protected function validateManualPayload(array $data): array
             ];
         }
 
+        $internalReference = $this->buildInternalReference((int)$payment->id, (string)($payment->reported_at ?? date('Y-m-d H:i:s')));
+        $externalReference = trim((string)$data['payment_reference']);
+        $finalReference = $internalReference . ($externalReference !== '' ? ' | Ref. externa: ' . $externalReference : '');
+        $payment->update([
+            'payment_reference' => $finalReference,
+        ]);
+        $payment->payment_reference = $finalReference;
+
+        $nextStage = $data['payment_kind'] === 'refund' ? (string)($opportunity->sales_stage ?? 'payment_validated') : 'payment_reported';
         $opportunity->update([
-            'sales_stage' => 'payment_reported',
+            'sales_stage' => $nextStage,
             'last_contact_at' => date('Y-m-d H:i:s'),
             'updated_by_admin_id' => $adminId,
         ]);
@@ -160,8 +196,8 @@ protected function validateManualPayload(array $data): array
             $opportunityId,
             $adminId,
             'payment_reported',
-            'Pago reportado',
-            'Se registró un pago reportado por ' . number_format((float)$data['amount'], 0, ',', '.') . ' ' . $data['currency'] . '.',
+            $data['payment_kind'] === 'refund' ? 'Devolución reportada' : 'Pago reportado',
+            'Se registró ' . ($data['payment_kind'] === 'refund' ? 'una devolución' : 'un pago') . ' por ' . number_format((float)$data['amount'], 0, ',', '.') . ' ' . $data['currency'] . '.',
             [
                 'payment_id' => (int)$payment->id,
                 'payment_kind' => $data['payment_kind'],
@@ -173,17 +209,44 @@ protected function validateManualPayload(array $data): array
 
         return [
             'success' => true,
-            'message' => 'Pago reportado correctamente.',
+            'message' => $data['payment_kind'] === 'refund' ? 'Devolución reportada correctamente.' : 'Pago reportado correctamente.',
             'errors' => [],
             'payment' => $payment,
         ];
     }
 
-    public function verifyPayment(int $paymentId, ?int $adminId = null): bool
+    public function verifyPayment(int $paymentId, ?int $adminId = null): array
     {
         $payment = SalesPayment::find($paymentId);
         if (!$payment) {
-            return false;
+            return ['success' => false, 'message' => 'Pago no encontrado.'];
+        }
+
+        if ((string)($payment->status ?? '') !== 'reported') {
+            return ['success' => false, 'message' => 'Este pago ya fue procesado.'];
+        }
+
+        $opportunityId = (int)$payment->sales_opportunity_id;
+        $opportunity = SalesOpportunity::find($opportunityId);
+        $currentQuote = SalesQuote::acceptedByOpportunity($opportunityId);
+        $order = SalesOrder::findByOpportunityId($opportunityId);
+        $quotedAmount = $order ? (float)$order->total_amount : ($currentQuote ? (float)$currentQuote->amount : (float)($opportunity->quoted_amount ?? 0));
+        $verifiedTotal = SalesPayment::sumVerifiedByOpportunity($opportunityId);
+        $kind = (string)($payment->payment_kind ?? 'partial');
+        $amount = (float)($payment->amount ?? 0);
+
+        if ($kind !== 'refund' && $quotedAmount > 0 && ($verifiedTotal + $amount) > ($quotedAmount + 0.01)) {
+            return [
+                'success' => false,
+                'message' => 'No se puede validar: este pago supera el saldo pendiente actual.',
+            ];
+        }
+
+        if ($kind === 'refund' && $amount > ($verifiedTotal + 0.01)) {
+            return [
+                'success' => false,
+                'message' => 'No se puede validar: la devolución supera el total validado.',
+            ];
         }
 
         $ok = $payment->update([
@@ -193,13 +256,19 @@ protected function validateManualPayload(array $data): array
         ]);
 
         if (!$ok) {
-            return false;
+            return ['success' => false, 'message' => 'No fue posible validar el pago.'];
         }
 
-        $opportunity = SalesOpportunity::find((int)$payment->sales_opportunity_id);
         if ($opportunity) {
+            if ($order) {
+                $this->refreshOrderFinancialStatus((int)$order->id, $adminId);
+            }
+
+            $paidAfter = SalesPayment::sumVerifiedByOpportunity($opportunityId);
+            $stageAfter = ($quotedAmount > 0 && $paidAfter >= ($quotedAmount - 0.01)) ? 'payment_validated' : 'payment_validated';
+
             $opportunity->update([
-                'sales_stage' => 'payment_validated',
+                'sales_stage' => $stageAfter,
                 'last_contact_at' => date('Y-m-d H:i:s'),
                 'updated_by_admin_id' => $adminId,
             ]);
@@ -208,17 +277,18 @@ protected function validateManualPayload(array $data): array
                 (int)$opportunity->id,
                 $adminId,
                 'payment_validated',
-                'Pago validado',
-                'Se validó un pago por ' . number_format((float)$payment->amount, 0, ',', '.') . ' ' . (string)$payment->currency . '.',
+                $kind === 'refund' ? 'Devolución validada' : 'Pago validado',
+                'Se validó ' . ($kind === 'refund' ? 'una devolución' : 'un pago') . ' por ' . number_format((float)$payment->amount, 0, ',', '.') . ' ' . (string)$payment->currency . '.',
                 [
                     'payment_id' => (int)$payment->id,
                     'amount' => (float)$payment->amount,
                     'currency' => (string)$payment->currency,
+                    'payment_kind' => $kind,
                 ]
             );
         }
 
-        return true;
+        return ['success' => true, 'message' => $kind === 'refund' ? 'Devolución validada correctamente.' : 'Pago validado correctamente.'];
     }
 
     public function rejectPayment(int $paymentId, string $reason, ?int $adminId = null): bool
@@ -272,16 +342,17 @@ protected function validateManualPayload(array $data): array
         ];
     }
 
-    protected function validateReport(array $data): array
+    protected function validateReport(array $data, float $quotedAmount = 0, float $availableToReport = 0, float $verifiedTotal = 0): array
     {
         $errors = [];
+        $kind = (string)$data['payment_kind'];
 
         if ($data['amount'] <= 0) {
             $errors['amount'][] = 'El monto debe ser mayor a cero.';
         }
 
         $allowedKinds = ['deposit', 'partial', 'full', 'balance', 'refund'];
-        if (!in_array($data['payment_kind'], $allowedKinds, true)) {
+        if (!in_array($kind, $allowedKinds, true)) {
             $errors['payment_kind'][] = 'Tipo de pago inválido.';
         }
 
@@ -290,7 +361,80 @@ protected function validateManualPayload(array $data): array
             $errors['payment_method'][] = 'Método de pago inválido.';
         }
 
+        if ($kind !== 'refund') {
+            if ($quotedAmount <= 0) {
+                $errors['quote'][] = 'Primero debes aceptar una cotización con valor para poder reportar pagos.';
+            }
+
+            if ($quotedAmount > 0 && $availableToReport <= 0) {
+                $errors['amount'][] = 'No hay saldo pendiente para reportar otro pago. Si hubo un error, rechaza pagos pendientes o registra una devolución/ajuste.';
+            }
+
+            if ($availableToReport > 0 && (float)$data['amount'] > ($availableToReport + 0.01)) {
+                $errors['amount'][] = 'El monto no puede superar el saldo pendiente disponible.';
+            }
+        } else {
+            if ($verifiedTotal <= 0) {
+                $errors['amount'][] = 'No puedes registrar una devolución si no hay pagos validados.';
+            }
+
+            if ($verifiedTotal > 0 && (float)$data['amount'] > ($verifiedTotal + 0.01)) {
+                $errors['amount'][] = 'La devolución no puede superar el total validado.';
+            }
+        }
+
         return $errors;
+    }
+
+    protected function firstError(array $errors): string
+    {
+        foreach ($errors as $messages) {
+            if (is_array($messages) && !empty($messages[0])) {
+                return (string)$messages[0];
+            }
+        }
+
+        return '';
+    }
+
+
+
+    protected function buildInternalReference(int $paymentId, string $dateTime): string
+    {
+        $timestamp = strtotime($dateTime) ?: time();
+        return 'CMP-' . date('Ymd', $timestamp) . '-' . str_pad((string)$paymentId, 6, '0', STR_PAD_LEFT);
+    }
+
+    protected function refreshOrderFinancialStatus(int $orderId, ?int $adminId = null): bool
+    {
+        $order = SalesOrder::find($orderId);
+        if (!$order) {
+            return false;
+        }
+
+        $paid = SalesPayment::sumVerifiedByOpportunity((int)$order->sales_opportunity_id);
+        $total = (float)($order->total_amount ?? 0);
+        $balance = max(0, $total - $paid);
+
+        return $order->update([
+            'paid_amount' => $paid,
+            'balance_amount' => $balance,
+            'commercial_status' => $this->resolveCommercialStatus($paid, $total),
+            'updated_by_admin_id' => $adminId,
+        ]);
+    }
+
+    protected function resolveCommercialStatus(float $paid, float $total): string
+    {
+        if ($total <= 0 || $paid <= 0) {
+            return 'open';
+        }
+
+        if ($paid < $total) {
+            return 'paid_partial';
+        }
+
+        return 'paid_full';
     }
 
     protected function logEvent(

@@ -96,6 +96,7 @@ class CustomerRegisterService
 
         $account = CustomerAccount::create([
             'customer_id' => (int) $customer->id,
+            'username' => $email,
             'email' => $email,
             'password_hash' => CustomerAccount::hashPassword($password),
             'status' => 'pending_verification',

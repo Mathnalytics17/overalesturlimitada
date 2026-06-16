@@ -53,7 +53,7 @@ class DashboardService
             ],
             'open_pqrs' => [
                 'value' => PqrsCase::countOpen(),
-                'compare_label' => 'casos abiertos',
+                'compare_label' => 'new / en progreso / esperando cliente',
                 'compare_value' => 0,
             ],
         ];
@@ -154,8 +154,11 @@ class DashboardService
     public function getPqrsSummary(): array
     {
         return [
-            'open' => PqrsCase::countByStatus('open'),
+            'open' => PqrsCase::countOpen(),
+            'new' => PqrsCase::countByStatus('new'),
             'in_progress' => PqrsCase::countByStatus('in_progress'),
+            'waiting_customer' => PqrsCase::countByStatus('waiting_customer'),
+            'resolved' => PqrsCase::countByStatus('resolved'),
             'closed' => PqrsCase::countByStatus('closed'),
         ];
     }

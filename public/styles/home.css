@@ -32,6 +32,13 @@ img {
 
 .home-page {
   width: 100%;
+  overflow: hidden;
+}
+
+.home-experience-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 
 /* HERO */
@@ -408,8 +415,13 @@ img {
   }
 
   .hero-content {
-    width: min(100% - 32px, 1200px);
+    width: min(calc(100% - 32px), 1200px);
     padding: 56px 0;
+  }
+
+  .hero-text,
+  .hero-card {
+    min-width: 0;
   }
 
   .hero-text p {
@@ -417,7 +429,8 @@ img {
   }
 
   .service-grid,
-  .question-cards-container {
+  .question-cards-container,
+  .home-experience-grid {
     grid-template-columns: 1fr;
   }
 

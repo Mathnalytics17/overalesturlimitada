@@ -61,6 +61,19 @@ if (!function_exists('public_path')) {
     }
 }
 
+if (!function_exists('profile_photo_url')) {
+    function profile_photo_url(?string $path): ?string
+    {
+        $path = trim((string) $path);
+
+        if ($path === '') {
+            return null;
+        }
+
+        return '/' . ltrim(str_replace('\\', '/', $path), '/');
+    }
+}
+
 if (!function_exists('app_url')) {
     function app_url(string $path = ''): string
     {

@@ -5,6 +5,7 @@ namespace app\Services\Admin\Sales;
 use app\Models\SalesOpportunity;
 use app\Models\SalesQuote;
 use app\Models\SalesOpportunityEvent;
+use app\Models\Currency;
 
 class SalesQuoteService
 {
@@ -181,11 +182,13 @@ class SalesQuoteService
 
     protected function normalize(array $payload): array
     {
+        $currency = strtoupper(trim((string)($payload['currency'] ?? 'COP')));
+
         return [
             'title' => trim((string)($payload['title'] ?? '')),
             'summary' => trim((string)($payload['summary'] ?? '')),
             'amount' => (float)($payload['amount'] ?? 0),
-            'currency' => trim((string)($payload['currency'] ?? 'COP')) ?: 'COP',
+            'currency' => $currency !== '' ? $currency : 'COP',
             'valid_until' => $this->normalizeDate($payload['valid_until'] ?? null),
         ];
     }
@@ -200,6 +203,15 @@ class SalesQuoteService
 
         if ($data['amount'] <= 0) {
             $errors['amount'][] = 'El monto debe ser mayor a cero.';
+        }
+
+        if ($data['currency'] === '') {
+            $errors['currency'][] = 'Selecciona una moneda válida.';
+        } else {
+            $currency = Currency::findByCode((string)$data['currency']);
+            if (!$currency || (int)($currency->is_active ?? 0) !== 1) {
+                $errors['currency'][] = 'Selecciona una moneda activa válida.';
+            }
         }
 
         return $errors;

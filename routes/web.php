@@ -42,11 +42,13 @@ $app->router->get('/packagesTourist/{id}', [SiteController::class, 'packageTouri
 $app->router->get('/pqrs', [WebPqrsController::class, 'index']);
 $app->router->post('/pqrs', [WebPqrsController::class, 'submit']);
 /* users privadas */
-$app->router->get('/users/user', [SiteController::class, 'UserShow'], [AuthCustomerMiddleware::class]);
+$app->router->get('/users/user', [\app\Controllers\web\users\ProfileController::class, 'index'], [AuthCustomerMiddleware::class]);
 $app->router->get('/users/editUser', [\app\Controllers\web\users\ProfileController::class, 'showEditProfile'], [AuthCustomerMiddleware::class]);
 $app->router->post('/users/editUser', [\app\Controllers\web\users\ProfileController::class, 'updateProfile'], [AuthCustomerMiddleware::class]);
 $app->router->get('/users/changePassword', [\app\Controllers\web\users\ProfileController::class, 'showChangePassword'], [AuthCustomerMiddleware::class]);
 $app->router->post('/users/changePassword', [\app\Controllers\web\users\ProfileController::class, 'changePassword'], [AuthCustomerMiddleware::class]);
+$app->router->post('/users/preferences', [\app\Controllers\web\users\ProfileController::class, 'updatePreferences'], [AuthCustomerMiddleware::class]);
+$app->router->post('/users/personalization/clear', [\app\Controllers\web\users\ProfileController::class, 'clearPersonalization'], [AuthCustomerMiddleware::class]);
 
 /* users publicas */
 $app->router->get('/users/confirmUser', [WebEmailVerificationController::class, 'confirm']);
@@ -62,6 +64,7 @@ $app->router->post('/users/resetPassword', [WebPasswordController::class, 'reset
 $app->router->get('/users/login', [WebAuthController::class, 'showLogin'], [GuestCustomerMiddleware::class]);
 $app->router->post('/users/login', [WebAuthController::class, 'login'], [GuestCustomerMiddleware::class]);
 $app->router->post('/users/logout', [WebAuthController::class, 'logout'], [AuthCustomerMiddleware::class]);
+$app->router->post('/packagesTourist/favorite', [TourPackageController::class, 'toggleFavorite'], [AuthCustomerMiddleware::class]);
 $app->router->get('/users/register', [WebRegisterController::class, 'showRegister'], [GuestCustomerMiddleware::class]);
 $app->router->post('/users/register', [WebRegisterController::class, 'register'], [GuestCustomerMiddleware::class]);
 

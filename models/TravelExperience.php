@@ -3,6 +3,8 @@
 namespace app\Models;
 
 use app\Core\Model;
+use app\Core\Paginator;
+use app\Core\QueryBuilder;
 
 class TravelExperience extends Model
 {
@@ -63,9 +65,24 @@ class TravelExperience extends Model
 
     public static function adminList(array $filters = [], int $limit = 100): array
     {
-        $query = static::query()
-            ->orderBy('id', 'DESC')
-            ->limit($limit);
+        $rows = static::filteredAdminQuery($filters)->limit($limit)->get();
+
+        return array_map(fn($row) => new static($row), $rows ?: []);
+    }
+
+    public static function paginateAdmin(array $filters = [], int $page = 1, int $perPage = 25): array
+    {
+        return Paginator::fromQuery(
+            static::filteredAdminQuery($filters),
+            $page,
+            $perPage,
+            fn(array $row) => new static($row)
+        );
+    }
+
+    protected static function filteredAdminQuery(array $filters): QueryBuilder
+    {
+        $query = static::query()->orderBy('id', 'DESC');
 
         if (!empty($filters['status'])) {
             $query->where('status', '=', (string)$filters['status']);
@@ -75,24 +92,11 @@ class TravelExperience extends Model
             $query->where('experience_type', '=', (string)$filters['experience_type']);
         }
 
-        $rows = $query->get();
-
         if (!empty($filters['q'])) {
-            $needle = mb_strtolower(trim((string)$filters['q']));
-            $rows = array_values(array_filter($rows, function ($row) use ($needle) {
-                $haystack = mb_strtolower(trim(
-                    ($row['customer_name'] ?? '') . ' ' .
-                    ($row['title'] ?? '') . ' ' .
-                    ($row['story'] ?? '') . ' ' .
-                    ($row['package_slug'] ?? '') . ' ' .
-                    ($row['extra_service_slug'] ?? '')
-                ));
-
-                return $haystack !== '' && str_contains($haystack, $needle);
-            }));
+            $query->whereAnyLike(['customer_name', 'title', 'story', 'package_slug', 'extra_service_slug'], trim((string) $filters['q']));
         }
 
-        return array_map(fn($row) => new static($row), $rows ?: []);
+        return $query;
     }
 
     public static function countByStatus(string $status): int

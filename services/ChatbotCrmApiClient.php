@@ -20,19 +20,19 @@ class ChatbotCrmApiClient
         return $this->get('/api/crm/contacts', $filters);
     }
 
-    public function contact(string|int $userId): array
+    public function contact(string|int $userId, ?string $botSession = null): array
     {
-        return $this->get('/api/crm/contacts/' . urlencode((string) $userId));
+        return $this->get('/api/crm/contacts/' . urlencode((string) $userId), ['bot_session' => $botSession]);
     }
 
-    public function messages(string|int $userId): array
+    public function messages(string|int $userId, ?string $botSession = null): array
     {
-        return $this->get('/api/crm/contacts/' . urlencode((string) $userId) . '/messages');
+        return $this->get('/api/crm/contacts/' . urlencode((string) $userId) . '/messages', ['bot_session' => $botSession]);
     }
 
-    public function conversation(string|int $userId): array
+    public function conversation(string|int $userId, ?string $botSession = null): array
     {
-        return $this->get('/api/crm/contacts/' . urlencode((string) $userId) . '/conversation');
+        return $this->get('/api/crm/contacts/' . urlencode((string) $userId) . '/conversation', ['bot_session' => $botSession]);
     }
 
     public function exportContactsUrl(array $filters = []): string

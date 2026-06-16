@@ -3,6 +3,7 @@
 namespace app\Models;
 
 use app\Core\Model;
+use app\Core\Paginator;
 
 class SalesOpportunity extends Model
 {
@@ -292,4 +293,31 @@ public static function countWonLastMonth(): int
 
     return $count;
 }
+
+    public static function paginateAdmin(array $filters = [], int $page = 1, int $perPage = 25): array
+    {
+        $query = static::query()->orderBy('id', 'DESC');
+
+        if (!empty($filters['stage'])) {
+            $query->where('sales_stage', '=', (string) $filters['stage']);
+        }
+
+        if (!empty($filters['assigned_admin_id'])) {
+            $query->where('assigned_admin_user_id', '=', (int) $filters['assigned_admin_id']);
+        }
+
+        if (!empty($filters['q'])) {
+            $query->whereAnyLike(
+                ['customer_name', 'customer_phone', 'customer_email', 'interest_type', 'package_slug', 'extra_service_slug'],
+                trim((string) $filters['q'])
+            );
+        }
+
+        return Paginator::fromQuery(
+            $query,
+            $page,
+            $perPage,
+            fn(array $row) => new static($row)
+        );
+    }
 }

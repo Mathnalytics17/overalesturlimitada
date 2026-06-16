@@ -5,6 +5,7 @@ namespace app\Services\Admin\Sales;
 use app\Models\SalesOpportunity;
 use app\Models\SalesOrder;
 use app\Models\SalesPayment;
+use app\Models\SalesQuote;
 use app\Models\SalesOpportunityEvent;
 
 class SalesOrderService
@@ -31,9 +32,27 @@ class SalesOrderService
             ];
         }
 
+        $currentQuote = SalesQuote::acceptedByOpportunity($opportunityId);
+        if (!$currentQuote) {
+            return [
+                'success' => false,
+                'message' => 'Antes de crear la venta/reserva debes aceptar una cotización con valor mayor a cero.',
+                'errors' => ['quote' => ['No hay cotización aceptada para crear la venta/reserva.']],
+            ];
+        }
+
         $verifiedPaid = SalesPayment::sumVerifiedByOpportunity($opportunityId);
-        $totalAmount = (float)($opportunity->quoted_amount ?? 0);
+        $totalAmount = (float)$currentQuote->amount;
+        $currency = (string)$currentQuote->currency ?: 'COP';
         $balance = max(0, $totalAmount - $verifiedPaid);
+
+        if ($totalAmount <= 0) {
+            return [
+                'success' => false,
+                'message' => 'La venta/reserva no se puede crear porque el valor cotizado está en cero.',
+                'errors' => ['amount' => ['El valor cotizado debe ser mayor a cero.']],
+            ];
+        }
 
         $order = SalesOrder::create([
             'uuid' => \uuid(),
@@ -49,7 +68,7 @@ class SalesOrderService
             'extra_service_id' => !empty($opportunity->extra_service_id) ? (int)$opportunity->extra_service_id : null,
             'extra_service_slug' => trim((string)($opportunity->extra_service_slug ?? '')),
             'total_amount' => $totalAmount,
-            'currency' => trim((string)($opportunity->quoted_currency ?? 'COP')) ?: 'COP',
+            'currency' => $currency,
             'paid_amount' => $verifiedPaid,
             'balance_amount' => $balance,
             'commercial_status' => $this->resolveCommercialStatus($verifiedPaid, $totalAmount),
@@ -73,6 +92,8 @@ class SalesOrderService
 
         $opportunity->update([
             'sales_stage' => 'won',
+            'quoted_amount' => $totalAmount,
+            'quoted_currency' => $currency,
             'won_at' => !empty($opportunity->won_at) ? $opportunity->won_at : date('Y-m-d H:i:s'),
             'updated_by_admin_id' => $adminId,
             'last_contact_at' => date('Y-m-d H:i:s'),
@@ -115,6 +136,16 @@ class SalesOrderService
 
         $order = SalesOrder::find($orderId);
         if (!$order) {
+            return false;
+        }
+
+        $this->refreshFinancialStatus($orderId, $adminId);
+        $order = SalesOrder::find($orderId);
+        if (!$order) {
+            return false;
+        }
+
+        if ($status === 'completed' && (float)($order->balance_amount ?? 0) > 0.01) {
             return false;
         }
 

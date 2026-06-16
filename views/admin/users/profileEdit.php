@@ -36,8 +36,23 @@ $hasErrors = !empty($errors);
     </div>
   <?php endif; ?>
 
-  <form class="form" method="POST" action="/admin/profile/edit">
+  <form class="form" method="POST" action="/admin/profile/edit" enctype="multipart/form-data">
     <?= Csrf::input(); ?>
+
+    <div class="field" style="grid-column:1/-1;">
+      <label for="profile_photo">Foto de perfil</label>
+      <?php if (profile_photo_url($user->profile_photo_path ?? null)): ?>
+        <img
+          src="<?= htmlspecialchars(profile_photo_url($user->profile_photo_path)) ?>"
+          alt="Foto de perfil actual"
+          style="width:92px; height:92px; border-radius:999px; object-fit:cover; border:1px solid #dbe3ef;">
+      <?php endif; ?>
+      <input type="file" id="profile_photo" name="profile_photo" accept="image/jpeg,image/png,image/webp">
+      <small style="color:#64748b;">JPG, PNG o WEBP. Tamano maximo: 5MB.</small>
+      <?php if (profile_error($errors, 'profile_photo')): ?>
+        <small style="color:#b91c1c;"><?= htmlspecialchars(profile_error($errors, 'profile_photo')) ?></small>
+      <?php endif; ?>
+    </div>
 
     <div class="field">
       <label for="first_name">Nombres</label>

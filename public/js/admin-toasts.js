@@ -34,7 +34,7 @@
 
     setTimeout(function () {
       removeToast(toast);
-    }, 4000);
+    }, 8000);
   }
 
   function escapeHtml(value) {

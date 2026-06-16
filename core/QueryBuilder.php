@@ -102,6 +102,30 @@ class QueryBuilder
         return $this;
     }
 
+    public function whereAnyLike(array $columns, string $value): static
+    {
+        $parts = [];
+
+        foreach ($columns as $column) {
+            if (!preg_match('/^[a-zA-Z0-9_\.]+$/', (string) $column)) {
+                continue;
+            }
+
+            $param = $this->newParamName('like');
+            $parts[] = "{$column} LIKE {$param}";
+            $this->bindings[$param] = '%' . $value . '%';
+        }
+
+        if ($parts !== []) {
+            $this->wheres[] = [
+                'boolean' => 'AND',
+                'sql' => '(' . implode(' OR ', $parts) . ')',
+            ];
+        }
+
+        return $this;
+    }
+
     public function orderBy(string $column, string $direction = 'ASC'): static
     {
         $direction = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';

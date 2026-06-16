@@ -3,6 +3,8 @@
 namespace app\Models;
 
 use app\Core\Model;
+use app\Core\Paginator;
+use app\Core\QueryBuilder;
 
 class SalesOrder extends Model
 {
@@ -68,6 +70,38 @@ class SalesOrder extends Model
         usort($items, fn($a, $b) => (int)$b->id <=> (int)$a->id);
 
         return array_values($items);
+    }
+
+    public static function paginateAdmin(array $filters = [], int $page = 1, int $perPage = 25): array
+    {
+        return Paginator::fromQuery(
+            static::filteredAdminQuery($filters),
+            $page,
+            $perPage,
+            fn(array $row) => new static($row)
+        );
+    }
+
+    protected static function filteredAdminQuery(array $filters): QueryBuilder
+    {
+        $query = static::query()->orderBy('id', 'DESC');
+
+        if (!empty($filters['operational_status'])) {
+            $query->where('operational_status', '=', (string) $filters['operational_status']);
+        }
+
+        if (!empty($filters['commercial_status'])) {
+            $query->where('commercial_status', '=', (string) $filters['commercial_status']);
+        }
+
+        if (!empty($filters['q'])) {
+            $query->whereAnyLike(
+                ['order_number', 'customer_name', 'customer_phone', 'customer_email', 'package_slug', 'extra_service_slug'],
+                trim((string) $filters['q'])
+            );
+        }
+
+        return $query;
     }
 public static function pendingOperational(int $limit = 5): array
 {

@@ -5,6 +5,7 @@ $active = 'leads';
 $filters = $filters ?? [];
 $counts = $counts ?? [];
 $leads = $leads ?? [];
+$pagination = $pagination ?? [];
 
 function lead_status_label(string $status): string
 {
@@ -107,7 +108,7 @@ function lead_source_label(string $source): string
 
   .filters-bar {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr) minmax(180px, 1fr) auto;
+    grid-template-columns: minmax(0, 2fr) repeat(3, minmax(140px, 1fr)) auto;
     gap: 12px;
     margin-bottom: 18px;
   }
@@ -412,6 +413,12 @@ function lead_source_label(string $source): string
       <?php endforeach; ?>
     </select>
 
+    <select class="field" name="per_page" aria-label="Registros por pagina">
+      <?php foreach ([10, 25, 50, 100] as $size): ?>
+        <option value="<?= $size ?>" <?= (int) ($pagination['per_page'] ?? 25) === $size ? 'selected' : '' ?>><?= $size ?> por pagina</option>
+      <?php endforeach; ?>
+    </select>
+
     <button class="filter-btn filter-submit" type="submit">Filtrar</button>
   </form>
 
@@ -504,4 +511,9 @@ function lead_source_label(string $source): string
       </table>
     </div>
   </div>
+  <?php
+    $paginationBaseUrl = '/admin/leads';
+    $paginationFilters = array_merge($filters, ['per_page' => $pagination['per_page'] ?? 25]);
+    require dirname(__DIR__, 3) . '/shared/partials/admin_pagination.php';
+  ?>
 </div>

@@ -36,7 +36,7 @@ $icon = $success ? '✓' : '!';
 
       <p class="login-sub" style="text-align:center;max-width:420px;margin:0 auto 18px;">
         <?php if ($success): ?>
-          Tu correo fue confirmado correctamente. Ya puedes iniciar sesión en el panel administrativo.
+          Tu correo fue confirmado correctamente. Si ya tienes contraseña, puedes iniciar sesión. Si fuiste invitado sin contraseña, usa el enlace de creación de contraseña enviado al correo o solicita recuperación desde el login.
         <?php else: ?>
           El enlace no es válido, ya fue usado o ha expirado. Puedes solicitar uno nuevo para continuar.
         <?php endif; ?>

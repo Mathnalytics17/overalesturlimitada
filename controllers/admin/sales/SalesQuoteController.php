@@ -26,13 +26,19 @@ class SalesQuoteController extends Controller
         $opportunityId = (int)($_POST['sales_opportunity_id'] ?? 0);
         $admin = AdminAuth::user();
 
-        $this->service->create(
+        $result = $this->service->create(
             $opportunityId,
             $_POST,
             $admin?->id ? (int)$admin->id : null
         );
 
-        \redirect('/admin/sales/show?id=' . $opportunityId);
+        if (!empty($result['success'])) {
+            Flash::success($result['message'] ?? 'Cotización creada correctamente.');
+        } else {
+            Flash::error($result['message'] ?? 'No fue posible crear la cotización.');
+        }
+
+        \redirect($this->safeReturnTo($_POST['return_to'] ?? '', '/admin/sales/show?id=' . $opportunityId));
     }
 
     public function markSent()
@@ -46,9 +52,10 @@ class SalesQuoteController extends Controller
         $opportunityId = (int)($_POST['sales_opportunity_id'] ?? 0);
         $admin = AdminAuth::user();
 
-        $this->service->markSent($quoteId, $admin?->id ? (int)$admin->id : null);
+        $ok = $this->service->markSent($quoteId, $admin?->id ? (int)$admin->id : null);
+        $ok ? Flash::success('Cotización marcada como enviada.') : Flash::error('No fue posible marcar la cotización como enviada.');
 
-        \redirect('/admin/sales/show?id=' . $opportunityId);
+        \redirect($this->safeReturnTo($_POST['return_to'] ?? '', '/admin/sales/show?id=' . $opportunityId));
     }
 
     public function markAccepted()
@@ -62,9 +69,10 @@ class SalesQuoteController extends Controller
         $opportunityId = (int)($_POST['sales_opportunity_id'] ?? 0);
         $admin = AdminAuth::user();
 
-        $this->service->markAccepted($quoteId, $admin?->id ? (int)$admin->id : null);
+        $ok = $this->service->markAccepted($quoteId, $admin?->id ? (int)$admin->id : null);
+        $ok ? Flash::success('Cotización aceptada. Ya puedes crear la venta/reserva.') : Flash::error('No fue posible aceptar la cotización.');
 
-        \redirect('/admin/sales/show?id=' . $opportunityId);
+        \redirect($this->safeReturnTo($_POST['return_to'] ?? '', '/admin/sales/show?id=' . $opportunityId));
     }
 
     public function markRejected()
@@ -78,8 +86,19 @@ class SalesQuoteController extends Controller
         $opportunityId = (int)($_POST['sales_opportunity_id'] ?? 0);
         $admin = AdminAuth::user();
 
-        $this->service->markRejected($quoteId, $admin?->id ? (int)$admin->id : null);
+        $ok = $this->service->markRejected($quoteId, $admin?->id ? (int)$admin->id : null);
+        $ok ? Flash::success('Cotización rechazada.') : Flash::error('No fue posible rechazar la cotización.');
 
-        \redirect('/admin/sales/show?id=' . $opportunityId);
+        \redirect($this->safeReturnTo($_POST['return_to'] ?? '', '/admin/sales/show?id=' . $opportunityId));
     }
+
+    protected function safeReturnTo(string $returnTo, string $fallback): string
+    {
+        $returnTo = trim($returnTo);
+        if ($returnTo === '' || !str_starts_with($returnTo, '/admin')) {
+            return $fallback;
+        }
+        return $returnTo;
+    }
+
 }

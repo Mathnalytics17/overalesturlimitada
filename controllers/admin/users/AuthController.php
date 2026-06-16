@@ -80,11 +80,8 @@ class AuthController extends Controller
 
     public function logout()
     {
-        if (!Csrf::validate($_POST['_csrf'] ?? null)) {
-            http_response_code(419);
-            exit('CSRF inválido');
-        }
-
+        // Cerrar sesión debe ser tolerante a token CSRF vencido: si el usuario
+        // quiere salir, destruimos la sesión y lo enviamos al login.
         $service = new AdminAuthService();
 
         $service->logout(

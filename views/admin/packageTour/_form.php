@@ -8,6 +8,8 @@ $submitText = $submitText ?? 'Guardar paquete';
 $cancelUrl = $cancelUrl ?? '/admin/packageTour';
 $package = $package ?? null;
 $tags = $tags ?? [];
+$templates = $templates ?? [];
+$currencies = $currencies ?? [];
 $errors = $errors ?? [];
 $message = $message ?? null;
 $old = $old ?? [];
@@ -111,6 +113,29 @@ if (empty($itineraryDayRows)) {
 }
 
 $currentStatus = (string)($getRawValue('status', 'draft') ?: 'draft');
+$selectedCurrencyId = (int)($getRawValue('currency_id', 0) ?: 0);
+$selectedCurrencyCode = strtoupper((string)($getRawValue('currency', 'COP') ?: 'COP'));
+if ($selectedCurrencyId <= 0 && !empty($currencies)) {
+    foreach ($currencies as $currencyOption) {
+        if (strtoupper((string)($currencyOption->code ?? '')) === $selectedCurrencyCode) {
+            $selectedCurrencyId = (int)$currencyOption->id;
+            break;
+        }
+    }
+}
+$noItinerary = array_key_exists('no_itinerary', $old)
+    ? !empty($old['no_itinerary'])
+    : ($mode === 'edit' && empty($itinerary));
+
+$savedTemplatePayloads = [];
+foreach ($templates as $template) {
+    $payload = method_exists($template, 'payload') ? $template->payload() : json_decode((string)($template->payload_json ?? '{}'), true);
+    $savedTemplatePayloads[] = [
+        'value' => 'saved:' . (string)($template->slug ?? ''),
+        'name' => (string)($template->name ?? ''),
+        'payload' => is_array($payload) ? $payload : [],
+    ];
+}
 ?>
 <style>
 .package-wizard {
@@ -528,11 +553,30 @@ $currentStatus = (string)($getRawValue('status', 'draft') ?: 'draft');
       <label>Plantilla rápida</label>
       <select id="templateSelect" class="template-select">
         <option value="">Sin plantilla</option>
-        <option value="nacional">Paquete nacional</option>
-        <option value="internacional">Paquete internacional</option>
-        <option value="escapada">Escapada corta</option>
-        <option value="familia">Vacaciones familiares</option>
+        <optgroup label="Plantillas base">
+          <option value="nacional">Paquete nacional</option>
+          <option value="internacional">Paquete internacional</option>
+          <option value="escapada">Escapada corta</option>
+          <option value="familia">Vacaciones familiares</option>
+        </optgroup>
+        <?php if (!empty($templates)): ?>
+          <optgroup label="Mis plantillas guardadas">
+            <?php foreach ($templates as $template): ?>
+              <option value="saved:<?= htmlspecialchars((string)($template->slug ?? '')) ?>">
+                <?= htmlspecialchars((string)($template->name ?? 'Plantilla')) ?>
+              </option>
+            <?php endforeach; ?>
+          </optgroup>
+        <?php endif; ?>
       </select>
+      <small class="help">Selecciona una plantilla para llenar servicios, condiciones, textos e itinerario.</small>
+    </div>
+
+    <div class="field" style="margin-bottom:16px;">
+      <label>Guardar este contenido como plantilla</label>
+      <input type="text" name="template_name" id="templateNameInput" form="packageForm" placeholder="Ej: Paquete playa internacional">
+      <small class="help">Sirve para reutilizar servicios, condiciones, textos e itinerario en nuevos paquetes.</small>
+      <button type="submit" form="packageForm" class="btn-outline" data-submit-action="save_template" style="margin-top:10px;width:100%;justify-content:center;">Guardar plantilla</button>
     </div>
 
     <div class="step-nav">
@@ -608,19 +652,29 @@ $currentStatus = (string)($getRawValue('status', 'draft') ?: 'draft');
 
           <div class="field full">
             <label>Etiquetas</label>
-            <div class="check-grid">
-              <?php foreach ($tags as $tag): ?>
-                <label class="check-chip">
-                  <input
-                    type="checkbox"
-                    name="tag_ids[]"
-                    value="<?= (int)$tag->id ?>"
-                    <?= in_array((int)$tag->id, $selectedTags, true) ? 'checked' : '' ?>
-                  >
-                  <span><?= htmlspecialchars($tag->name ?? '') ?></span>
-                </label>
-              <?php endforeach; ?>
-            </div>
+            <?php if (empty($tags)): ?>
+              <div class="empty-state" style="padding:14px; text-align:left;">
+                No hay etiquetas activas. Primero créalas en
+                <a href="/admin/packageTour/tags">Etiquetas de paquetes</a>.
+              </div>
+            <?php else: ?>
+              <div class="check-grid">
+                <?php foreach ($tags as $tag): ?>
+                  <label class="check-chip">
+                    <input
+                      type="checkbox"
+                      name="tag_ids[]"
+                      value="<?= (int)$tag->id ?>"
+                      <?= in_array((int)$tag->id, $selectedTags, true) ? 'checked' : '' ?>
+                    >
+                    <span style="display:inline-flex; align-items:center; gap:7px;">
+                      <span style="width:10px; height:10px; border-radius:999px; background:<?= htmlspecialchars($tag->color ?? '#1FA4CF') ?>; border:1px solid #e5e7eb;"></span>
+                      <?= htmlspecialchars($tag->name ?? '') ?>
+                    </span>
+                  </label>
+                <?php endforeach; ?>
+              </div>
+            <?php endif; ?>
           </div>
 
           <div class="field full">
@@ -650,7 +704,36 @@ $currentStatus = (string)($getRawValue('status', 'draft') ?: 'draft');
 
           <div class="field">
             <label>Moneda</label>
-            <input name="currency" id="pkgCurrency" value="<?= $getValue('currency', 'COP') ?>" placeholder="COP">
+            <?php if (empty($currencies)): ?>
+              <div class="empty-state" style="text-align:left; padding:14px;">
+                No hay monedas activas. Primero créalas en
+                <a href="/admin/currencies">Monedas</a>.
+              </div>
+              <input type="hidden" name="currency" id="pkgCurrency" value="">
+              <input type="hidden" name="currency_id" id="pkgCurrencyId" value="">
+            <?php else: ?>
+              <select name="currency" id="pkgCurrency">
+                <?php foreach ($currencies as $currencyOption): ?>
+                  <?php
+                    $optionId = (int)($currencyOption->id ?? 0);
+                    $optionCode = strtoupper((string)($currencyOption->code ?? ''));
+                    $selected = $selectedCurrencyId === $optionId || ($optionCode === $selectedCurrencyCode);
+                  ?>
+                  <option
+                    value="<?= htmlspecialchars($optionCode) ?>"
+                    data-id="<?= $optionId ?>"
+                    data-code="<?= htmlspecialchars($optionCode) ?>"
+                    data-symbol="<?= htmlspecialchars((string)($currencyOption->symbol ?? '')) ?>"
+                    <?= $selected ? 'selected' : '' ?>
+                  >
+                    <?= htmlspecialchars($optionCode . ' - ' . (string)($currencyOption->name ?? '') . ' (' . (string)($currencyOption->symbol ?? '') . ')') ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+              <input type="hidden" name="currency_id" id="pkgCurrencyId" value="<?= (int)$selectedCurrencyId ?>">
+              <small class="help">Gestiona nuevas monedas desde <a href="/admin/currencies">Monedas</a>.</small>
+            <?php endif; ?>
+            <?php if ($getError('currency_id')): ?><small class="error"><?= htmlspecialchars($getError('currency_id')) ?></small><?php endif; ?>
           </div>
 
           <div class="field">
@@ -664,8 +747,10 @@ $currentStatus = (string)($getRawValue('status', 'draft') ?: 'draft');
           </div>
 
           <div class="field">
-            <label>Orden</label>
-            <input name="sort_order" type="number" value="<?= $getValue('sort_order', '0') ?>">
+            <label>Posición en listado</label>
+            <input name="sort_order" type="number" min="1" value="<?= $getValue('sort_order', '0') ?>" placeholder="Ej: 1">
+            <small class="help">Si eliges una posición ocupada, los demás paquetes se corren automáticamente hacia abajo. Déjalo vacío o en 0 para enviarlo al final.</small>
+            <?php if ($getError('sort_order')): ?><small class="error"><?= htmlspecialchars($getError('sort_order')) ?></small><?php endif; ?>
           </div>
         </div>
       </section>
@@ -765,11 +850,23 @@ $currentStatus = (string)($getRawValue('status', 'draft') ?: 'draft');
     <div class="field full">
       <div class="card-block">
         <div class="block-title">
-          <h3>Itinerario por días</h3>
-          <button type="button" class="action-btn add-btn" data-add-repeat="itinerary">+ Agregar día</button>
+          <div>
+            <h3>Itinerario por días</h3>
+            <small class="help">Si el itinerario aún no está definido, márcalo como no disponible.</small>
+          </div>
+          <button type="button" class="action-btn add-btn" data-add-repeat="itinerary" id="addItineraryBtn">+ Agregar día</button>
         </div>
 
-        <div class="repeat-list" id="itineraryList">
+        <label class="check-chip" style="margin-bottom:14px;">
+          <input type="checkbox" name="no_itinerary" id="noItineraryInput" value="1" <?= $noItinerary ? 'checked' : '' ?>>
+          <span>No mostrar itinerario por ahora</span>
+        </label>
+
+        <div class="empty-state" id="itineraryUnavailableBox" style="<?= $noItinerary ? '' : 'display:none;' ?> text-align:left; padding:14px; margin-bottom:12px;">
+          En el detalle del paquete el cliente verá: <strong>El itinerario no está disponible.</strong>
+        </div>
+
+        <div class="repeat-list" id="itineraryList" style="<?= $noItinerary ? 'display:none;' : '' ?>">
           <?php foreach ($itineraryDayRows as $i => $dayNumber): ?>
             <div class="repeat-item condition">
               <div class="condition-grid" style="grid-template-columns:140px 1fr 2fr auto;">
@@ -970,6 +1067,8 @@ $currentStatus = (string)($getRawValue('status', 'draft') ?: 'draft');
   const nextBtn = document.getElementById('nextStepBtn');
   const form = document.getElementById('packageForm');
   const submitActionInput = document.getElementById('submitActionInput');
+  const templateNameInput = document.getElementById('templateNameInput');
+  const savedTemplates = <?= json_encode($savedTemplatePayloads, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   let currentStep = 1;
 
   function goToStep(step) {
@@ -996,11 +1095,46 @@ $currentStatus = (string)($getRawValue('status', 'draft') ?: 'draft');
 
   goToStep(1);
 
+  let clickedSubmitButton = null;
+
   document.querySelectorAll('[data-submit-action]').forEach((btn) => {
-    btn.addEventListener('click', function () {
-      submitActionInput.value = this.dataset.submitAction || 'draft';
+    btn.addEventListener('click', function (event) {
+      clickedSubmitButton = this;
+      const action = this.dataset.submitAction || 'draft';
+      submitActionInput.value = action;
+
+      if (action === 'save_template' && templateNameInput && !templateNameInput.value.trim()) {
+        const suggested = (titleInput?.value?.trim() || 'Nueva plantilla');
+        const value = window.prompt('Nombre de la plantilla:', suggested);
+        if (!value || !value.trim()) {
+          event.preventDefault();
+          clickedSubmitButton = null;
+          return;
+        }
+        templateNameInput.value = value.trim();
+      }
     });
   });
+
+  if (form) {
+    form.addEventListener('submit', () => {
+      updatePreview();
+
+      const buttons = Array.from(form.querySelectorAll('button[type="submit"], button[form="packageForm"]'));
+      buttons.forEach((button) => {
+        button.disabled = true;
+        button.style.opacity = '0.72';
+        button.style.cursor = 'wait';
+      });
+
+      if (clickedSubmitButton) {
+        const action = submitActionInput?.value || clickedSubmitButton.dataset.submitAction || 'draft';
+        clickedSubmitButton.textContent = action === 'publish'
+          ? 'Publicando...'
+          : (action === 'save_template' ? 'Guardando plantilla...' : 'Guardando...');
+      }
+    });
+  }
 
  const repeatMap = {
   includes: { listId: 'includesList', templateId: 'includeTemplate' },
@@ -1010,11 +1144,33 @@ $currentStatus = (string)($getRawValue('status', 'draft') ?: 'draft');
   itinerary: { listId: 'itineraryList', templateId: 'itineraryTemplate' },
 };
 
+  const noItineraryInput = document.getElementById('noItineraryInput');
+  const itineraryList = document.getElementById('itineraryList');
+  const itineraryUnavailableBox = document.getElementById('itineraryUnavailableBox');
+  const addItineraryBtn = document.getElementById('addItineraryBtn');
+
+  function syncItineraryVisibility() {
+    const disabled = !!noItineraryInput?.checked;
+    if (itineraryList) itineraryList.style.display = disabled ? 'none' : '';
+    if (itineraryUnavailableBox) itineraryUnavailableBox.style.display = disabled ? '' : 'none';
+    if (addItineraryBtn) addItineraryBtn.style.display = disabled ? 'none' : '';
+    updatePreview();
+  }
+
+  if (noItineraryInput) {
+    noItineraryInput.addEventListener('change', syncItineraryVisibility);
+  }
+
   document.querySelectorAll('[data-add-repeat]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const key = btn.dataset.addRepeat;
       const config = repeatMap[key];
       if (!config) return;
+
+      if (key === 'itinerary' && noItineraryInput) {
+        noItineraryInput.checked = false;
+        syncItineraryVisibility();
+      }
 
       const list = document.getElementById(config.listId);
       const tpl = document.getElementById(config.templateId);
@@ -1033,7 +1189,7 @@ $currentStatus = (string)($getRawValue('status', 'draft') ?: 'draft');
     if (!item || !list) return;
 
     if (list.children.length <= 1) {
-      const fields = item.querySelectorAll('input[type="text"], textarea');
+      const fields = item.querySelectorAll('input[type="text"], input[type="number"], textarea');
       fields.forEach((field) => field.value = '');
       return;
     }
@@ -1081,6 +1237,7 @@ $currentStatus = (string)($getRawValue('status', 'draft') ?: 'draft');
   const locationInput = document.getElementById('pkgLocation');
   const priceInput = document.getElementById('pkgPrice');
   const currencyInput = document.getElementById('pkgCurrency');
+  const currencyIdInput = document.getElementById('pkgCurrencyId');
   const daysInput = document.getElementById('pkgDays');
   const nightsInput = document.getElementById('pkgNights');
   const shortInput = document.getElementById('pkgShortDescription');
@@ -1115,7 +1272,11 @@ const previewItinerary = document.getElementById('previewItinerary');
     previewSubtitle.textContent = subtitleInput?.value.trim() || 'Subtítulo del paquete';
     previewLocation.textContent = locationInput?.value.trim() || '-';
     previewPrice.textContent = priceInput?.value.trim() || '0';
-    previewCurrency.textContent = currencyInput?.value.trim() || 'COP';
+    const selectedCurrencyOption = currencyInput?.selectedOptions ? currencyInput.selectedOptions[0] : null;
+    const currencyCode = selectedCurrencyOption?.dataset?.code || currencyInput?.value?.trim() || 'COP';
+    previewCurrency.textContent = currencyCode;
+    if (currencyInput && currencyCode) currencyInput.value = currencyCode;
+    if (currencyIdInput && selectedCurrencyOption?.dataset?.id) currencyIdInput.value = selectedCurrencyOption.dataset.id;
     previewDuration.textContent = daysInput?.value.trim() || '-';
     previewNights.textContent = nightsInput?.value.trim() || '-';
     previewShort.innerHTML = nl2brSafe(shortInput?.value.trim() || 'Sin descripción corta todavía.');
@@ -1132,6 +1293,11 @@ const previewItinerary = document.getElementById('previewItinerary');
     
 
     if (previewItinerary) {
+  if (noItineraryInput?.checked) {
+    previewItinerary.innerHTML = '<p style="color:#6b7280;">El itinerario no está disponible.</p>';
+    return;
+  }
+
   const dayInputs = Array.from(document.querySelectorAll('input[name="itinerary_day_number[]"]'));
   const titleInputs = Array.from(document.querySelectorAll('input[name="itinerary_title[]"]'));
   const contentInputs = Array.from(document.querySelectorAll('textarea[name="itinerary_content[]"]'));
@@ -1165,10 +1331,14 @@ const previewItinerary = document.getElementById('previewItinerary');
 }
   }
 
-  [titleInput, subtitleInput, locationInput, priceInput, currencyInput, daysInput, nightsInput, shortInput, generalInput]
+  [titleInput, subtitleInput, locationInput, priceInput, daysInput, nightsInput, shortInput, generalInput]
     .forEach((el) => {
       if (el) el.addEventListener('input', updatePreview);
     });
+
+  if (currencyInput) {
+    currencyInput.addEventListener('change', updatePreview);
+  }
 
   document.querySelectorAll('input[name="tag_ids[]"]').forEach((el) => {
     el.addEventListener('change', updatePreview);
@@ -1254,6 +1424,12 @@ const previewItinerary = document.getElementById('previewItinerary');
     }
   };
 
+  savedTemplates.forEach((template) => {
+    if (template && template.value) {
+      presets[template.value] = template.payload || {};
+    }
+  });
+
   function fillSimpleList(listId, name, items) {
     const list = document.getElementById(listId);
     if (!list) return;
@@ -1308,21 +1484,87 @@ const previewItinerary = document.getElementById('previewItinerary');
     }
   }
 
+  function fillItinerary(items, noItinerary) {
+    const list = document.getElementById('itineraryList');
+    if (!list) return;
+
+    if (noItineraryInput) {
+      noItineraryInput.checked = !!noItinerary;
+    }
+
+    list.innerHTML = '';
+
+    (items || []).forEach((item, index) => {
+      const day = item.day_number || item.day || (index + 1);
+      const title = item.title || ('Día ' + day);
+      const content = item.content || '';
+      const div = document.createElement('div');
+      div.className = 'repeat-item condition';
+      div.innerHTML =
+        '<div class="condition-grid" style="grid-template-columns:140px 1fr 2fr auto;">' +
+          '<input type="number" min="1" name="itinerary_day_number[]" value="' + escapeHtml(day) + '" placeholder="Día">' +
+          '<input type="text" name="itinerary_title[]" value="' + escapeHtml(title) + '" placeholder="Título del día">' +
+          '<textarea name="itinerary_content[]" placeholder="Describe las actividades o detalles del día">' + escapeHtml(content) + '</textarea>' +
+          '<button type="button" class="mini-btn" data-remove-repeat>Eliminar</button>' +
+        '</div>';
+      list.appendChild(div);
+    });
+
+    if (!items || !items.length) {
+      const tpl = document.getElementById('itineraryTemplate');
+      if (tpl) list.appendChild(tpl.content.cloneNode(true));
+    }
+
+    syncItineraryVisibility();
+  }
+
+  function setInputValue(input, value, onlyIfEmpty = false) {
+    if (!input) return;
+    if (onlyIfEmpty && input.value.trim()) return;
+    input.value = value ?? '';
+  }
+
+  function setCurrencyByCode(code, onlyIfEmpty = false) {
+    if (!currencyInput) return;
+    const currentCode = currencyInput.selectedOptions?.[0]?.dataset?.code || currencyInput.value || '';
+    if (onlyIfEmpty && currentCode) return;
+
+    const normalized = String(code || '').toUpperCase();
+    const option = Array.from(currencyInput.options || []).find((item) => (item.dataset.code || '').toUpperCase() === normalized);
+    if (option) {
+      currencyInput.value = option.value;
+      if (currencyIdInput && option.dataset.id) currencyIdInput.value = option.dataset.id;
+    }
+  }
+
   if (templateSelect) {
     templateSelect.addEventListener('change', () => {
       const preset = presets[templateSelect.value];
       if (!preset) return;
 
-      if (currencyInput && !currencyInput.value.trim()) {
-        currencyInput.value = preset.currency || 'COP';
-      }
+      setInputValue(subtitleInput, preset.subtitle || '', true);
+      setInputValue(shortInput, preset.short_description || '', true);
+      setInputValue(generalInput, preset.general_description || '', true);
+      setCurrencyByCode(preset.currency || 'COP', true);
+      setInputValue(daysInput, preset.duration_days || '', true);
+      setInputValue(nightsInput, preset.duration_nights || '', true);
 
       fillSimpleList('includesList', 'includes', preset.includes || []);
       fillSimpleList('excludesList', 'excludes', preset.excludes || []);
       fillSimpleList('highlightsList', 'highlights', preset.highlights || []);
       fillConditions(preset.conditions || []);
+      fillItinerary(preset.itinerary || [], !!preset.no_itinerary);
+
+      if (Array.isArray(preset.tag_ids)) {
+        document.querySelectorAll('input[name="tag_ids[]"]').forEach((checkbox) => {
+          checkbox.checked = preset.tag_ids.map(Number).includes(Number(checkbox.value));
+        });
+      }
+
       updatePreview();
     });
   }
+
+  syncItineraryVisibility();
 })();
 </script>

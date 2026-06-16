@@ -5,13 +5,23 @@
 <script >
 
   (function(){
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+
   const app = document.querySelector(".app");
   const toggle = document.querySelector("#toggleSidebar");
+  const sidebarBackdrop = document.querySelector(".sidebar-backdrop");
   const userChip = document.querySelector("#userChip");
   const menu = document.querySelector("#userMenu");
 
   if(toggle && app){
     toggle.addEventListener("click", () => {
+      if (window.matchMedia("(max-width: 760px)").matches) {
+        app.classList.toggle("mobile-sidebar-open");
+        return;
+      }
+
       app.classList.toggle("collapsed");
       // opcional: recordar en localStorage
       localStorage.setItem("ui.sidebarCollapsed", app.classList.contains("collapsed") ? "1" : "0");
@@ -20,6 +30,14 @@
     const saved = localStorage.getItem("ui.sidebarCollapsed");
     if(saved === "1") app.classList.add("collapsed");
   }
+
+  if(sidebarBackdrop && app){
+    sidebarBackdrop.addEventListener("click", () => app.classList.remove("mobile-sidebar-open"));
+  }
+
+  document.querySelectorAll(".sidebar .nav a").forEach(link => {
+    link.addEventListener("click", () => app?.classList.remove("mobile-sidebar-open"));
+  });
 
   // Dropdown usuario
   if(userChip && menu){

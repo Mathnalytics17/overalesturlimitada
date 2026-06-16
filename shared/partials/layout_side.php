@@ -13,46 +13,67 @@ $user_role = $currentAdmin->role ?? 'Administrador';
     </div>
   </div>
 
-  <nav class="nav">
-    <a class="<?= $active === 'dashboard' ? 'active' : ''; ?>" href="/admin">
-      <i data-lucide="layout-dashboard"></i>
+  <nav class="nav" aria-label="Navegación principal del panel">
+    <a class="<?= $active === 'dashboard' ? 'active' : ''; ?>" href="/admin" data-label="Dashboard" title="Dashboard" aria-label="Dashboard">
+      <span class="nav-icon"><i data-lucide="layout-dashboard"></i><span class="nav-fallback">⌂</span></span>
       <span class="nav-text">Dashboard</span>
     </a>
 
-    <a class="<?= $active === 'leads' ? 'active' : ''; ?>" href="/admin/leads">
-      <i data-lucide="users"></i>
+    <a class="<?= $active === 'leads' ? 'active' : ''; ?>" href="/admin/leads" data-label="Contactos potenciales" title="Contactos potenciales" aria-label="Contactos potenciales">
+      <span class="nav-icon"><i data-lucide="users"></i><span class="nav-fallback">☷</span></span>
       <span class="nav-text">Contactos potenciales</span>
     </a>
 
-    <a class="<?= $active === 'sales' ? 'active' : ''; ?>" href="/admin/sales">
-      <i data-lucide="line-chart"></i>
+    <a class="<?= $active === 'sales' ? 'active' : ''; ?>" href="/admin/sales" data-label="Seguimiento de ventas" title="Seguimiento de ventas" aria-label="Seguimiento de ventas">
+      <span class="nav-icon"><i data-lucide="trending-up"></i><span class="nav-fallback">↗</span></span>
       <span class="nav-text">Seguimiento de ventas</span>
     </a>
 
-    <a class="<?= $active === 'chatbot' ? 'active' : ''; ?>" href="/admin/chatbot">
-      <i data-lucide="message-circle"></i>
+    <a class="<?= $active === 'sales_orders' ? 'active' : ''; ?>" href="/admin/sales-orders" data-label="Ventas / Reservas" title="Ventas / Reservas" aria-label="Ventas / Reservas">
+      <span class="nav-icon"><i data-lucide="receipt-text"></i><span class="nav-fallback">▤</span></span>
+      <span class="nav-text">Ventas / Reservas</span>
+    </a>
+
+    <a class="<?= $active === 'chatbot' ? 'active' : ''; ?>" href="/admin/chatbot" data-label="Chatbot WhatsApp" title="Chatbot WhatsApp" aria-label="Chatbot WhatsApp">
+      <span class="nav-icon"><i data-lucide="message-circle"></i><span class="nav-fallback">◌</span></span>
       <span class="nav-text">Chatbot WhatsApp</span>
     </a>
 
 <?php $currentAdmin = \app\Core\AdminAuth::user(); ?>
 <?php if ($currentAdmin && $currentAdmin->can('manage_users')): ?>
-  <a class="<?= $active==='users'?'active':''; ?>" href="/admin/users">
-    <i data-lucide="user-cog"></i>
-    <span class="nav-text">Usuarios</span>
-  </a>
+    <a class="<?= $active === 'users' ? 'active' : ''; ?>" href="/admin/users" data-label="Usuarios" title="Usuarios" aria-label="Usuarios">
+      <span class="nav-icon"><i data-lucide="user-cog"></i><span class="nav-fallback">◎</span></span>
+      <span class="nav-text">Usuarios</span>
+    </a>
 <?php endif; ?>
-    <a class="<?= $active === 'packages' ? 'active' : ''; ?>" href="/admin/packageTour">
-      <i data-lucide="plane"></i>
+
+    <a class="<?= $active === 'packages' ? 'active' : ''; ?>" href="/admin/packageTour" data-label="Paquetes" title="Paquetes" aria-label="Paquetes">
+      <span class="nav-icon"><i data-lucide="plane"></i><span class="nav-fallback">✈</span></span>
       <span class="nav-text">Paquetes</span>
     </a>
 
-      <a class="<?= $active === 'docs' ? 'active' : ''; ?>" href="/admin/experiences">
-      <i data-lucide="laugh"></i>
+    <a class="<?= $active === 'package_tags' ? 'active' : ''; ?>" href="/admin/packageTour/tags" data-label="Etiquetas" title="Etiquetas de paquetes" aria-label="Etiquetas de paquetes">
+      <span class="nav-icon"><i data-lucide="tags"></i><span class="nav-fallback">#</span></span>
+      <span class="nav-text">Etiquetas</span>
+    </a>
+
+    <a class="<?= $active === 'currencies' ? 'active' : ''; ?>" href="/admin/currencies" data-label="Monedas" title="Monedas" aria-label="Monedas">
+      <span class="nav-icon"><i data-lucide="coins"></i><span class="nav-fallback">$</span></span>
+      <span class="nav-text">Monedas</span>
+    </a>
+
+    <a class="<?= $active === 'package_analytics' ? 'active' : ''; ?>" href="/admin/packageTour/analytics" data-label="Analítica de paquetes" title="Analítica de paquetes" aria-label="Analítica de paquetes">
+      <span class="nav-icon"><i data-lucide="bar-chart-3"></i><span class="nav-fallback">▦</span></span>
+      <span class="nav-text">Analítica de paquetes</span>
+    </a>
+
+    <a class="<?= $active === 'experiences' ? 'active' : ''; ?>" href="/admin/experiences" data-label="Experiencias" title="Experiencias" aria-label="Experiencias">
+      <span class="nav-icon"><i data-lucide="sparkles"></i><span class="nav-fallback">✦</span></span>
       <span class="nav-text">Experiencias</span>
     </a>
 
-    <a class="<?= $active === 'docs' ? 'active' : ''; ?>" href="/admin/pqrs">
-      <i data-lucide="file-text"></i>
+    <a class="<?= $active === 'pqrs' ? 'active' : ''; ?>" href="/admin/pqrs" data-label="PQRS" title="PQRS" aria-label="PQRS">
+      <span class="nav-icon"><i data-lucide="file-text"></i><span class="nav-fallback">☰</span></span>
       <span class="nav-text">PQRS</span>
     </a>
   </nav>
@@ -64,12 +85,14 @@ $user_role = $currentAdmin->role ?? 'Administrador';
     </div>
   </div>
 </aside>
+<button class="sidebar-backdrop" type="button" aria-label="Cerrar menu lateral"></button>
 
 <main class="main">
   <header class="topbar">
     <div class="top-left">
-      <button class="icon-btn" id="toggleSidebar" aria-label="Menú">
+      <button class="icon-btn sidebar-toggle" id="toggleSidebar" aria-label="Abrir o cerrar menú" type="button">
         <i data-lucide="menu"></i>
+        <span class="menu-fallback" aria-hidden="true">☰</span>
       </button>
 
       <div class="page-title">
@@ -84,7 +107,11 @@ $user_role = $currentAdmin->role ?? 'Administrador';
     <div class="dropdown">
   <div class="userchip" id="userChip">
     <div class="avatar">
-      <?= strtoupper(substr($user_name, 0, 1)); ?><?= strtoupper(substr($user_role, 0, 1)); ?>
+      <?php if (profile_photo_url($currentAdmin->profile_photo_path ?? null)): ?>
+        <img src="<?= htmlspecialchars(profile_photo_url($currentAdmin->profile_photo_path)) ?>" alt="Foto de perfil">
+      <?php else: ?>
+        <?= strtoupper(substr($user_name, 0, 1)); ?><?= strtoupper(substr($user_role, 0, 1)); ?>
+      <?php endif; ?>
     </div>
 
     <div class="user-meta">

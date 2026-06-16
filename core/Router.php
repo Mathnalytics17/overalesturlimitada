@@ -45,13 +45,14 @@ class Router
 
         if ($resolved === null) {
             $this->response->setStatusCode(404);
-            return $this->renderView('_404');
+            return $this->renderNotFound($path);
         }
 
         $route = $resolved['route'];
         $this->request->setRouteParams($resolved['params']);
 
-        if ($method === 'post' && !$this->request->isJson() && !Csrf::validate($this->request->input('_csrf'))) {
+        $csrfExemptLogout = $method === 'post' && in_array($path, ['/admin/users/logout', '/users/logout'], true);
+        if ($method === 'post' && !$csrfExemptLogout && !$this->request->isJson() && !Csrf::validate($this->request->input('_csrf'))) {
             $this->response->setStatusCode(419);
             return $this->renderView('_419', null, ['message' => 'La sesión del formulario expiró. Intenta nuevamente.']);
         }
@@ -77,6 +78,24 @@ class Router
         }
 
         return (string) call_user_func($callback, $this->request);
+    }
+
+
+    protected function renderNotFound(string $path): string
+    {
+        $normalizedPath = $this->normalizePath($path);
+
+        if (str_starts_with($normalizedPath, '/admin')) {
+            return $this->renderView('_404_admin', 'adminUserLayout', [
+                'page_title' => 'Página no encontrada',
+                'page_subtitle' => 'La ruta solicitada no existe dentro del panel administrativo.',
+                'active' => '',
+            ]);
+        }
+
+        return $this->renderView('_404_public', 'mainUserLayout', [
+            'title' => 'Página no encontrada | Over Alestur',
+        ]);
     }
 
     public function renderView(string $view, ?string $layout = 'mainUserLayout', array $params = []): string

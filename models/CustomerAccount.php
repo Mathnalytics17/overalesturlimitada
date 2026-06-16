@@ -10,6 +10,7 @@ class CustomerAccount extends Model
 
     protected array $fillable = [
         'customer_id',
+        'username',
         'email',
         'password_hash',
         'status',

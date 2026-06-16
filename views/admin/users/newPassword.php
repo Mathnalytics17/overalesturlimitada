@@ -8,17 +8,19 @@ $token = $token ?? '';
 
 function admin_reset_error(array $errors, string $field): ?string
 {
-    return $errors[$field][0] ?? null;
+  return $errors[$field][0] ?? null;
 }
 ?>
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nueva contraseña admin</title>
-  <link rel="stylesheet" href="/public/styles/admin.css" />
+  <link rel="stylesheet" href="/styles/admin.css" />
 </head>
+
 <body>
   <div class="login">
     <div class="login-left">
@@ -66,4 +68,5 @@ function admin_reset_error(array $errors, string $field): ?string
     <div class="login-right"></div>
   </div>
 </body>
+
 </html>

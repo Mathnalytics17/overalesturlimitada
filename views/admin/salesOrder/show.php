@@ -21,6 +21,26 @@ function order_badge_class(string $status): string
         default => 'badge gray',
     };
 }
+
+
+function order_status_label(string $status): string
+{
+    return match ($status) {
+        'open' => 'Abierta',
+        'paid_partial' => 'Pago parcial',
+        'paid_full' => 'Pagada completa',
+        'pending_documents' => 'Pendiente documentos',
+        'pending_booking' => 'Pendiente reserva',
+        'booked' => 'Reservado',
+        'delivered' => 'Entregado',
+        'completed' => 'Completado',
+        'cancelled' => 'Cancelado',
+        default => ucfirst($status),
+    };
+}
+
+$canCompleteOrder = (float)($item->balance_amount ?? 0) <= 0.01;
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -239,10 +259,10 @@ function order_badge_class(string $status): string
 
               <div style="display:flex; gap:10px; flex-wrap:wrap;">
                 <span class="<?= order_badge_class((string)($item->commercial_status ?? 'open')) ?>">
-                  <?= htmlspecialchars($item->commercial_status ?? 'open') ?>
+                  <?= htmlspecialchars(order_status_label((string)($item->commercial_status ?? 'open'))) ?>
                 </span>
                 <span class="<?= order_badge_class((string)($item->operational_status ?? 'pending_documents')) ?>">
-                  <?= htmlspecialchars($item->operational_status ?? 'pending_documents') ?>
+                  <?= htmlspecialchars(order_status_label((string)($item->operational_status ?? 'pending_documents'))) ?>
                 </span>
               </div>
             </div>
@@ -385,10 +405,15 @@ function order_badge_class(string $status): string
                   <option value="pending_booking" <?= ($item->operational_status ?? '') === 'pending_booking' ? 'selected' : '' ?>>Pendiente reserva</option>
                   <option value="booked" <?= ($item->operational_status ?? '') === 'booked' ? 'selected' : '' ?>>Reservado</option>
                   <option value="delivered" <?= ($item->operational_status ?? '') === 'delivered' ? 'selected' : '' ?>>Entregado</option>
-                  <option value="completed" <?= ($item->operational_status ?? '') === 'completed' ? 'selected' : '' ?>>Completado</option>
+                  <option value="completed" <?= ($item->operational_status ?? '') === 'completed' ? 'selected' : '' ?> <?= !$canCompleteOrder ? 'disabled' : '' ?>>Completado<?= !$canCompleteOrder ? ' (requiere pago completo)' : '' ?></option>
                   <option value="cancelled" <?= ($item->operational_status ?? '') === 'cancelled' ? 'selected' : '' ?>>Cancelado</option>
                 </select>
 
+                <?php if (!$canCompleteOrder): ?>
+                  <div style="padding:12px 14px;border:1px dashed #fde68a;background:#fffbeb;color:#92400e;border-radius:14px;font-size:14px;line-height:1.45;">
+                    Para marcar como completado, primero debe quedar saldo en cero. Puedes avanzar documentos, reserva o entrega, pero el cierre final requiere pago completo.
+                  </div>
+                <?php endif; ?>
                 <button type="submit" class="btn-main">Actualizar estado</button>
               </form>
 

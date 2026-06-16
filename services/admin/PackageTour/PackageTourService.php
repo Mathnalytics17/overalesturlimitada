@@ -9,6 +9,9 @@ use app\Models\TourPackageImage;
 use app\Models\TourPackageInclusion;
 use app\Models\TourPackageTagItem;
 use app\Models\TourPackageItinerary;
+use app\Models\Currency;
+use app\Core\Database;
+use app\Services\Package\PackageNotificationService;
 class PackageTourService
 {
     public function create(array $input, ?int $adminId = null, array $files = []): array
@@ -39,6 +42,8 @@ class PackageTourService
             ];
         }
 
+        $data['sort_order'] = $this->prepareSortOrderForCreate($data['sort_order']);
+
         $packageUuid = \uuid();
 
         $package = TourPackage::create([
@@ -52,6 +57,7 @@ class PackageTourService
             'country_id' => null,
             'city_id' => null,
             'price_from' => $data['price_from'],
+            'currency_id' => $data['currency_id'],
             'currency' => $data['currency'],
             'duration_days' => $data['duration_days'],
             'duration_nights' => $data['duration_nights'],
@@ -104,13 +110,20 @@ $this->syncConditions((int)$package->id, $data['conditions']);
 $this->syncHighlights((int)$package->id, $data['highlights']);
 $this->syncItinerary((int)$package->id, $data['itinerary']);
 
+        $notificationResult = null;
+        if ((string) $package->status === 'published') {
+            $freshPackage = TourPackage::find((int) $package->id) ?? $package;
+            $notificationResult = $this->handlePublishedPackageNotifications($freshPackage);
+        }
+
         return [
             'success' => true,
-            'message' => 'Paquete creado correctamente.',
+            'message' => $data['status'] === 'published' ? 'Paquete publicado correctamente.' : 'Borrador guardado correctamente.',
             'errors' => [],
             'old' => [],
             'data' => [
                 'package' => $package->toArray(),
+                'notification_result' => $notificationResult,
             ],
         ];
     }
@@ -132,6 +145,7 @@ $this->syncItinerary((int)$package->id, $data['itinerary']);
         }
 
         $data = $this->normalize($input);
+        $wasPublished = (string) $package->status === 'published';
         $errors = $this->validate($data, false, $files, $package);
 
         if (!empty($errors)) {
@@ -157,6 +171,8 @@ $this->syncItinerary((int)$package->id, $data['itinerary']);
             ];
         }
 
+        $data['sort_order'] = $this->prepareSortOrderForUpdate($package, $data['sort_order']);
+
         $updated = $package->update([
             'slug' => $data['slug'],
             'title' => $data['title'],
@@ -165,6 +181,7 @@ $this->syncItinerary((int)$package->id, $data['itinerary']);
             'general_description' => $data['general_description'],
             'location_name' => $data['location_name'],
             'price_from' => $data['price_from'],
+            'currency_id' => $data['currency_id'],
             'currency' => $data['currency'],
             'duration_days' => $data['duration_days'],
             'duration_nights' => $data['duration_nights'],
@@ -233,13 +250,21 @@ $this->syncItinerary((int)$package->id, $data['itinerary']);
         $this->replaceConditions((int)$package->id, $data['conditions']);
         $this->replaceHighlights((int)$package->id, $data['highlights']);
         $this->replaceItinerary((int)$package->id, $data['itinerary']);
+
+        $notificationResult = null;
+        if (!$wasPublished && $data['status'] === 'published') {
+            $notificationResult = $this->handlePublishedPackageNotifications(TourPackage::find($packageId) ?? $package);
+        }
        
         return [
             'success' => true,
-            'message' => 'Paquete actualizado correctamente.',
+            'message' => $data['status'] === 'published' ? 'Paquete publicado correctamente.' : 'Paquete guardado como borrador correctamente.',
             'errors' => [],
             'old' => [],
-            'data' => [],
+            'data' => [
+                'package' => (TourPackage::find($packageId) ?? $package)->toArray(),
+                'notification_result' => $notificationResult,
+            ],
         ];
     }
 
@@ -297,6 +322,14 @@ $this->syncItinerary((int)$package->id, $data['itinerary']);
             $errors['price_from'][] = 'El precio no puede ser negativo.';
         }
 
+        if ($data['currency_id'] <= 0 || $data['currency'] === '') {
+            $errors['currency_id'][] = 'Selecciona una moneda válida.';
+        }
+
+        if ($data['sort_order'] < 0) {
+            $errors['sort_order'][] = 'La posición no puede ser negativa.';
+        }
+
         return $errors;
     }
 
@@ -326,7 +359,8 @@ $this->syncItinerary((int)$package->id, $data['itinerary']);
     'general_description' => trim((string)($input['general_description'] ?? '')),
     'location_name' => trim((string)($input['location_name'] ?? '')),
     'price_from' => (float)($input['price_from'] ?? 0),
-    'currency' => trim((string)($input['currency'] ?? 'COP')) ?: 'COP',
+    'currency_id' => $this->resolveCurrencyId($input),
+    'currency' => $this->resolveCurrencyCode($input),
     'duration_days' => $input['duration_days'] !== '' ? (int)$input['duration_days'] : null,
     'duration_nights' => $input['duration_nights'] !== '' ? (int)$input['duration_nights'] : null,
     'status' => in_array($status, ['draft', 'published', 'archived'], true) ? $status : 'draft',
@@ -340,11 +374,12 @@ $this->syncItinerary((int)$package->id, $data['itinerary']);
         $input['condition_titles'] ?? [],
         $input['condition_contents'] ?? []
     ),
-    'itinerary' => $this->normalizeItinerary(
+    'itinerary' => !empty($input['no_itinerary']) ? [] : $this->normalizeItinerary(
         $input['itinerary_day_number'] ?? [],
         $input['itinerary_title'] ?? [],
         $input['itinerary_content'] ?? []
     ),
+    'no_itinerary' => !empty($input['no_itinerary']) ? 1 : 0,
     'tag_ids' => array_values(array_unique(array_map('intval', $input['tag_ids'] ?? []))),
     'remove_cover' => !empty($input['remove_cover']) ? 1 : 0,
 ];
@@ -374,6 +409,10 @@ $this->syncItinerary((int)$package->id, $data['itinerary']);
         $content = trim((string)($contents[$i] ?? ''));
 
         if ($dayNumber <= 0 && $title === '' && $content === '') {
+            continue;
+        }
+
+        if ($dayNumber > 0 && $title === '' && $content === '') {
             continue;
         }
 
@@ -680,6 +719,181 @@ protected function replaceItinerary(int $packageId, array $items): void
         }
 
         $this->syncHighlights($packageId, $items);
+    }
+
+
+    protected function resolveCurrencyId(array $input): int
+    {
+        $code = strtoupper(trim((string)($input['currency'] ?? '')));
+
+        if ($code !== '') {
+            $currency = Currency::findByCode($code);
+            if ($currency && (int)($currency->is_active ?? 0) === 1) {
+                return (int)$currency->id;
+            }
+        }
+
+        $currencyId = (int)($input['currency_id'] ?? 0);
+        if ($currencyId > 0) {
+            $currency = Currency::find($currencyId);
+            if ($currency && (int)($currency->is_active ?? 0) === 1) {
+                return (int)$currency->id;
+            }
+        }
+
+        $cop = Currency::findByCode('COP');
+        return $cop && (int)($cop->is_active ?? 0) === 1 ? (int)$cop->id : 0;
+    }
+
+    protected function resolveCurrencyCode(array $input): string
+    {
+        $code = strtoupper(trim((string)($input['currency'] ?? '')));
+
+        if ($code !== '') {
+            $currency = Currency::findByCode($code);
+            if ($currency && (int)($currency->is_active ?? 0) === 1) {
+                return strtoupper((string)$currency->code);
+            }
+        }
+
+        $currencyId = (int)($input['currency_id'] ?? 0);
+        if ($currencyId > 0) {
+            $currency = Currency::find($currencyId);
+            if ($currency && (int)($currency->is_active ?? 0) === 1) {
+                return strtoupper((string)$currency->code);
+            }
+        }
+
+        $cop = Currency::findByCode('COP');
+        return $cop && (int)($cop->is_active ?? 0) === 1 ? 'COP' : '';
+    }
+
+    protected function prepareSortOrderForCreate(int $requestedOrder): int
+    {
+        $target = $this->normalizeRequestedSortOrder($requestedOrder, null);
+        $this->shiftForInsert($target);
+
+        return $target;
+    }
+
+    protected function prepareSortOrderForUpdate(TourPackage $package, int $requestedOrder): int
+    {
+        $current = (int)($package->sort_order ?? 0);
+        $target = $this->normalizeRequestedSortOrder($requestedOrder, (int)$package->id);
+
+        if ($current <= 0) {
+            $this->shiftForInsert($target);
+            return $target;
+        }
+
+        if ($current === $target) {
+            return $target;
+        }
+
+        $pdo = Database::connection();
+        $now = date('Y-m-d H:i:s');
+
+        if ($target < $current) {
+            $stmt = $pdo->prepare(
+                "UPDATE tour_packages
+                 SET sort_order = sort_order + 1, updated_at = :now
+                 WHERE deleted_at IS NULL
+                   AND id <> :id
+                   AND sort_order >= :target
+                   AND sort_order < :current"
+            );
+        } else {
+            $stmt = $pdo->prepare(
+                "UPDATE tour_packages
+                 SET sort_order = GREATEST(sort_order - 1, 1), updated_at = :now
+                 WHERE deleted_at IS NULL
+                   AND id <> :id
+                   AND sort_order <= :target
+                   AND sort_order > :current"
+            );
+        }
+
+        $stmt->execute([
+            ':now' => $now,
+            ':id' => (int)$package->id,
+            ':target' => $target,
+            ':current' => $current,
+        ]);
+
+        return $target;
+    }
+
+    protected function normalizeRequestedSortOrder(int $requestedOrder, ?int $excludePackageId): int
+    {
+        $max = $this->maxSortOrder($excludePackageId);
+
+        if ($requestedOrder <= 0) {
+            return $max + 1;
+        }
+
+        return min($requestedOrder, $max + 1);
+    }
+
+    protected function shiftForInsert(int $targetOrder): void
+    {
+        $pdo = Database::connection();
+        $stmt = $pdo->prepare(
+            "UPDATE tour_packages
+             SET sort_order = sort_order + 1, updated_at = :now
+             WHERE deleted_at IS NULL AND sort_order >= :target"
+        );
+
+        $stmt->execute([
+            ':now' => date('Y-m-d H:i:s'),
+            ':target' => $targetOrder,
+        ]);
+    }
+
+    protected function maxSortOrder(?int $excludePackageId = null): int
+    {
+        $pdo = Database::connection();
+        $sql = "SELECT COALESCE(MAX(sort_order), 0) AS max_order FROM tour_packages WHERE deleted_at IS NULL";
+        $params = [];
+
+        if ($excludePackageId) {
+            $sql .= " AND id <> :id";
+            $params[':id'] = $excludePackageId;
+        }
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $row = $stmt->fetch();
+
+        return (int)($row['max_order'] ?? 0);
+    }
+
+    protected function handlePublishedPackageNotifications(TourPackage $package): array
+    {
+        $service = new PackageNotificationService();
+        $queued = $service->queuePublishedPackageNotifications(
+            $package,
+            env_int('PACKAGE_NOTIFICATION_MIN_TAG_MATCHES', 3)
+        );
+
+        $processed = null;
+        if (env_bool('PACKAGE_NOTIFICATION_SEND_ENABLED', false) && env_bool('PACKAGE_NOTIFICATION_SEND_ON_PUBLISH', false)) {
+            try {
+                $processed = $service->processPending(env_int('PACKAGE_NOTIFICATION_PUBLISH_PROCESS_LIMIT', 50));
+            } catch (\Throwable $exception) {
+                $processed = [
+                    'processed' => 0,
+                    'sent' => 0,
+                    'failed' => 0,
+                    'skipped' => 0,
+                    'error' => $exception->getMessage(),
+                ];
+            }
+        }
+
+        return [
+            'queued' => $queued,
+            'processed' => $processed,
+        ];
     }
 
     protected function slugify(string $value): string

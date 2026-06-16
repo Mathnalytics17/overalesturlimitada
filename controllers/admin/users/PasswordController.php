@@ -6,6 +6,7 @@ use app\Core\Controller;
 use app\Core\Csrf;
 use app\Core\RateLimiter;
 use app\Services\Admin\Users\AdminPasswordService;
+
 class PasswordController extends Controller
 {
     public function showForgotPassword()
@@ -14,7 +15,7 @@ class PasswordController extends Controller
             'errors' => [],
             'message' => null,
             'old' => [],
-        ], 'adminUserLayout');
+        ], null);
     }
 
     public function sendResetLink()
@@ -37,7 +38,7 @@ class PasswordController extends Controller
                 'old' => [
                     'email' => $_POST['email'] ?? '',
                 ],
-            ], 'adminUserLayout');
+            ], null);
         }
 
         $turnstile = validate_turnstile($_POST['cf-turnstile-response'] ?? null, $ipAddress);
@@ -50,7 +51,7 @@ class PasswordController extends Controller
                 'old' => [
                     'email' => $_POST['email'] ?? '',
                 ],
-            ], 'adminUserLayout');
+            ], null);
         }
 
         $service = new AdminPasswordService();
@@ -63,7 +64,7 @@ class PasswordController extends Controller
             'old' => [
                 'email' => $_POST['email'] ?? '',
             ],
-        ], 'adminUserLayout');
+        ], null);
     }
 
     public function showResetPassword()
@@ -74,7 +75,7 @@ class PasswordController extends Controller
             'token' => $token,
             'errors' => [],
             'message' => null,
-        ], 'adminUserLayout');
+        ], null);
     }
 
     public function resetPassword()
@@ -116,6 +117,6 @@ class PasswordController extends Controller
             'token' => $_POST['token'] ?? '',
             'errors' => $result['errors'] ?? [],
             'message' => $result['message'] ?? null,
-        ], 'adminUserLayout');
+        ], null);
     }
 }

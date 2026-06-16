@@ -4,6 +4,8 @@ require_once __DIR__ . '/../services/ChatbotCrmApiClient.php';
 require_once __DIR__ . '/../controllers/admin/chatbot/ChatbotController.php';
 
 use app\Controllers\admin\packageTour\PackageTourController;
+use app\Controllers\admin\packageTour\PackageTagController;
+use app\Controllers\admin\packageTour\CurrencyController;
 use app\Controllers\admin\leads\LeadController;
 use app\Controllers\admin\users\AuthController as AdminAuthController;
 use app\Controllers\admin\users\EmailVerificationController as AdminEmailVerificationController;
@@ -63,7 +65,8 @@ $app->router->get('/admin/chatbot/show', [\app\Controllers\admin\chatbot\Chatbot
 $app->router->get('/admin/chatbot/export', [\app\Controllers\admin\chatbot\ChatbotController::class, 'export'], [AuthAdminMiddleware::class]);
 $app->router->get('/admin/chatbot/export-messages', [\app\Controllers\admin\chatbot\ChatbotController::class, 'exportMessages'], [AuthAdminMiddleware::class]);
 
-$app->router->get('/admin/trazabilitySells', [SiteController::class, 'admin'], [AuthAdminMiddleware::class]);
+// Ruta legacy mantenida por compatibilidad: redirige al módulo real de seguimiento de ventas.
+$app->router->get('/admin/trazabilitySells', [\app\Controllers\admin\sales\SalesOpportunityController::class, 'index'], [AuthAdminMiddleware::class]);
 
 /* admin auth */
 $app->router->get('/admin/users/login', [AdminAuthController::class, 'showLogin'], [GuestAdminMiddleware::class]);
@@ -97,6 +100,23 @@ $app->router->post('/admin/profile/change-password', [AdminProfileController::cl
 
 
 /* paquetes admin */
+$app->router->get('/admin/packageTour/tags', [PackageTagController::class, 'index'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/packageTour/tags/create', [PackageTagController::class, 'create'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/packageTour/tags/create', [PackageTagController::class, 'store'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/packageTour/tags/edit', [PackageTagController::class, 'edit'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/packageTour/tags/edit', [PackageTagController::class, 'update'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/packageTour/tags/delete', [PackageTagController::class, 'delete'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/packageTour/tags/seed', [PackageTagController::class, 'seed'], [AuthAdminMiddleware::class]);
+
+
+$app->router->get('/admin/currencies', [CurrencyController::class, 'index'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/currencies/create', [CurrencyController::class, 'create'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/currencies/create', [CurrencyController::class, 'store'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/currencies/edit', [CurrencyController::class, 'edit'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/currencies/edit', [CurrencyController::class, 'update'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/currencies/toggle', [CurrencyController::class, 'toggle'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/currencies/seed', [CurrencyController::class, 'seed'], [AuthAdminMiddleware::class]);
+
 $app->router->get('/admin/packageTour', [PackageTourController::class, 'index'], [AuthAdminMiddleware::class]);
 $app->router->get('/admin/packageTour/create', [PackageTourController::class, 'create'], [AuthAdminMiddleware::class]);
 $app->router->post('/admin/packageTour/create', [PackageTourController::class, 'store'], [AuthAdminMiddleware::class]);
@@ -105,6 +125,9 @@ $app->router->post('/admin/packageTour/edit', [PackageTourController::class, 'up
 $app->router->post('/admin/packageTour/delete', [PackageTourController::class, 'delete'], [AuthAdminMiddleware::class]);
 $app->router->post('/admin/packageTour/status', [PackageTourController::class, 'toggleStatus'], [AuthAdminMiddleware::class]);
 $app->router->post('/admin/packageTour/featured', [PackageTourController::class, 'toggleFeatured'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/packageTour/notifications/process', [PackageTourController::class, 'processNotifications'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/packageTour/notifications/queue-recommendations', [PackageTourController::class, 'queueWeeklyRecommendations'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/packageTour/analytics', [\app\Controllers\admin\packageTour\PackageAnalyticsController::class, 'index'], [AuthAdminMiddleware::class]);
 
 
 $app->router->get('/admin/users', [UserManagementController::class, 'index'], [
