@@ -1,5 +1,7 @@
 <?php
+
 use app\Core\Csrf;
+
 $packages = $packages ?? [];
 $filters = $filters ?? [];
 $pagination = $pagination ?? [];
@@ -7,30 +9,32 @@ $notificationCounts = $notificationCounts ?? ['pending' => 0, 'sent' => 0, 'fail
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Administración de paquetes</title>
   <link rel="stylesheet" href="/styles/admin.css">
 </head>
+
 <body>
   <div class="app">
 
 
     <main class="main">
 
-        <div class="top-left">
-          <div class="page-title">
-            <h1>Paquetes turísticos</h1>
-            <p>Crear y administrar paquetes turísticos</p>
-          </div>
+      <div class="top-left">
+        <div class="page-title">
+          <h1>Paquetes turísticos</h1>
+          <p>Crear y administrar paquetes turísticos</p>
         </div>
+      </div>
 
-        <div class="top-right">
-          <a href="/admin/packageTour/tags" class="btn" style="text-decoration:none;">Etiquetas</a>
-          <a href="/admin/packageTour/analytics" class="btn" style="text-decoration:none;">Ver analítica</a>
-          <a href="/admin/packageTour/create" class="btn primary" style="text-decoration:none;">+ Crear paquete</a>
-        </div>
+      <div class="top-right">
+        <a href="/admin/packageTour/tags" class="btn" style="text-decoration:none;">Etiquetas</a>
+        <a href="/admin/packageTour/analytics" class="btn" style="text-decoration:none;">Ver analítica</a>
+        <a href="/admin/packageTour/create" class="btn primary" style="text-decoration:none;">+ Crear paquete</a>
+      </div>
 
 
       <section class="content">
@@ -68,10 +72,7 @@ $notificationCounts = $notificationCounts ?? ['pending' => 0, 'sent' => 0, 'fail
               <button class="btn" type="submit">Encolar recomendaciones semanales</button>
             </form>
 
-            <div class="t-muted" style="font-size:13px; line-height:1.5; max-width:720px;">
-              Regla automática: al publicar un paquete, si coincide con mínimo 3 etiquetas elegidas por el cliente en su perfil, se encola un aviso personalizado.
-              Si <code>PACKAGE_NOTIFICATION_SEND_ON_PUBLISH=true</code>, intenta enviarlo en ese mismo momento.
-            </div>
+
           </div>
         </div>
         <div class="card">
@@ -172,13 +173,14 @@ $notificationCounts = $notificationCounts ?? ['pending' => 0, 'sent' => 0, 'fail
             </table>
           </div>
           <?php
-            $paginationBaseUrl = '/admin/packageTour';
-            $paginationFilters = array_merge($filters, ['per_page' => $pagination['per_page'] ?? 25]);
-            require dirname(__DIR__, 3) . '/shared/partials/admin_pagination.php';
+          $paginationBaseUrl = '/admin/packageTour';
+          $paginationFilters = array_merge($filters, ['per_page' => $pagination['per_page'] ?? 25]);
+          require dirname(__DIR__, 3) . '/shared/partials/admin_pagination.php';
           ?>
         </div>
       </section>
     </main>
   </div>
 </body>
+
 </html>
