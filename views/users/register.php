@@ -465,6 +465,7 @@ function field_error(array $errors, string $field): ?string
         <?php if (field_error($errors, 'email')): ?>
           <small class="register-error"><?= htmlspecialchars(field_error($errors, 'email')) ?></small>
         <?php endif; ?>
+        <small style="color:#64748b;font-weight:700;line-height:1.35;">Te enviaremos a este correo un enlace para activar tu cuenta.</small>
       </div>
 
       <div class="register-field">
@@ -514,7 +515,7 @@ function field_error(array $errors, string $field): ?string
 
         <div class="register-buttons">
           <a href="/" class="btn">Cancelar</a>
-          <button type="submit" class="btn primary">Crear cuenta</button>
+          <button type="submit" class="btn primary">Crear cuenta y verificar correo</button>
         </div>
       </div>
     </form>

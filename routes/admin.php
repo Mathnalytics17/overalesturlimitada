@@ -6,6 +6,7 @@ require_once __DIR__ . '/../controllers/admin/chatbot/ChatbotController.php';
 use app\Controllers\admin\packageTour\PackageTourController;
 use app\Controllers\admin\packageTour\PackageTagController;
 use app\Controllers\admin\packageTour\CurrencyController;
+use app\Controllers\admin\packageTour\PackageTemplateController;
 use app\Controllers\admin\leads\LeadController;
 use app\Controllers\admin\users\AuthController as AdminAuthController;
 use app\Controllers\admin\users\EmailVerificationController as AdminEmailVerificationController;
@@ -127,6 +128,14 @@ $app->router->post('/admin/packageTour/status', [PackageTourController::class, '
 $app->router->post('/admin/packageTour/featured', [PackageTourController::class, 'toggleFeatured'], [AuthAdminMiddleware::class]);
 $app->router->post('/admin/packageTour/notifications/process', [PackageTourController::class, 'processNotifications'], [AuthAdminMiddleware::class]);
 $app->router->post('/admin/packageTour/notifications/queue-recommendations', [PackageTourController::class, 'queueWeeklyRecommendations'], [AuthAdminMiddleware::class]);
+
+$app->router->get('/admin/packageTour/templates', [PackageTemplateController::class, 'index'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/packageTour/templates/create', [PackageTemplateController::class, 'create'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/packageTour/templates/create', [PackageTemplateController::class, 'store'], [AuthAdminMiddleware::class]);
+$app->router->get('/admin/packageTour/templates/edit', [PackageTemplateController::class, 'edit'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/packageTour/templates/edit', [PackageTemplateController::class, 'update'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/packageTour/templates/toggle', [PackageTemplateController::class, 'toggle'], [AuthAdminMiddleware::class]);
+$app->router->post('/admin/packageTour/templates/delete', [PackageTemplateController::class, 'delete'], [AuthAdminMiddleware::class]);
 $app->router->get('/admin/packageTour/analytics', [\app\Controllers\admin\packageTour\PackageAnalyticsController::class, 'index'], [AuthAdminMiddleware::class]);
 
 

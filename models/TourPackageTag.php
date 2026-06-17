@@ -8,6 +8,11 @@ class TourPackageTag extends Model
 {
     protected string $table = 'tour_package_tags';
 
+    protected array $casts = [
+        'id' => 'int',
+        'is_active' => 'int',
+    ];
+
     protected array $fillable = [
         'uuid',
         'name',
@@ -33,7 +38,7 @@ class TourPackageTag extends Model
             ->orderBy('name', 'ASC');
 
         if (($filters['status'] ?? '') !== '') {
-            $query->where('is_active', '=', (string) $filters['status'] === 'active' ? 1 : 0);
+            $query->where('is_active', '=', ((string) $filters['status'] === 'active') ? 1 : 0);
         }
 
         if (!empty($filters['q'])) {

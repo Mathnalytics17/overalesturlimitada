@@ -179,7 +179,15 @@ class PackageTagController extends Controller
         $created = 0;
         foreach ($seedTags as [$name, $color]) {
             $slug = $this->slugify($name);
-            if (TourPackageTag::findBySlug($slug)) {
+            $existingTag = TourPackageTag::findBySlug($slug);
+            if ($existingTag) {
+                if ((int) ($existingTag->is_active ?? 0) !== 1 || (string) ($existingTag->color ?? '') !== strtoupper($color)) {
+                    $existingTag->update([
+                        'name' => $name,
+                        'color' => strtoupper($color),
+                        'is_active' => 1,
+                    ]);
+                }
                 continue;
             }
 

@@ -57,6 +57,11 @@ $user_role = $currentAdmin->role ?? 'Administrador';
       <span class="nav-text">Etiquetas</span>
     </a>
 
+
+    <a class="<?= $active === 'package_templates' ? 'active' : ''; ?>" href="/admin/packageTour/templates" data-label="Plantillas" title="Plantillas de paquetes" aria-label="Plantillas de paquetes">
+      <span class="nav-icon"><i data-lucide="copy-plus"></i><span class="nav-fallback">▣</span></span>
+      <span class="nav-text">Plantillas</span>
+    </a>
     <a class="<?= $active === 'currencies' ? 'active' : ''; ?>" href="/admin/currencies" data-label="Monedas" title="Monedas" aria-label="Monedas">
       <span class="nav-icon"><i data-lucide="coins"></i><span class="nav-fallback">$</span></span>
       <span class="nav-text">Monedas</span>

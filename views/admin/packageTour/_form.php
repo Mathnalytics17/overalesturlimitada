@@ -569,13 +569,14 @@ foreach ($templates as $template) {
           </optgroup>
         <?php endif; ?>
       </select>
-      <small class="help">Selecciona una plantilla para llenar servicios, condiciones, textos e itinerario.</small>
+      <small class="help">Selecciona una plantilla para llenar textos, servicios, condiciones, itinerario, etiquetas y datos sugeridos.</small>
+      <small class="help"><a href="/admin/packageTour/templates" style="color:#4b148c;font-weight:900;">Gestionar plantillas</a></small>
     </div>
 
     <div class="field" style="margin-bottom:16px;">
       <label>Guardar este contenido como plantilla</label>
       <input type="text" name="template_name" id="templateNameInput" form="packageForm" placeholder="Ej: Paquete playa internacional">
-      <small class="help">Sirve para reutilizar servicios, condiciones, textos e itinerario en nuevos paquetes.</small>
+      <small class="help">Guarda el contenido reutilizable: textos, ubicación/precio sugeridos, moneda, duración, servicios, condiciones, itinerario, etiquetas, destacado y popular. No guarda imágenes, slug, estado ni posición.</small>
       <button type="submit" form="packageForm" class="btn-outline" data-submit-action="save_template" style="margin-top:10px;width:100%;justify-content:center;">Guardar plantilla</button>
     </div>
 
@@ -748,8 +749,8 @@ foreach ($templates as $template) {
 
           <div class="field">
             <label>Posición en listado</label>
-            <input name="sort_order" type="number" min="1" value="<?= $getValue('sort_order', '0') ?>" placeholder="Ej: 1">
-            <small class="help">Si eliges una posición ocupada, los demás paquetes se corren automáticamente hacia abajo. Déjalo vacío o en 0 para enviarlo al final.</small>
+            <input name="sort_order" type="number" min="1" value="<?= $getValue('sort_order', '1') ?>" placeholder="Ej: 1">
+            <small class="help">Si eliges una posición ocupada, los demás paquetes se corren automáticamente hacia abajo. Por defecto entra en la posición 1. Si eliges una posición ocupada, los demás se corren automáticamente hacia abajo.</small>
             <?php if ($getError('sort_order')): ?><small class="error"><?= htmlspecialchars($getError('sort_order')) ?></small><?php endif; ?>
           </div>
         </div>
@@ -1542,7 +1543,10 @@ const previewItinerary = document.getElementById('previewItinerary');
       const preset = presets[templateSelect.value];
       if (!preset) return;
 
+      setInputValue(titleInput, preset.title || '', true);
       setInputValue(subtitleInput, preset.subtitle || '', true);
+      setInputValue(locationInput, preset.location_name || '', true);
+      setInputValue(priceInput, preset.price_from || '', true);
       setInputValue(shortInput, preset.short_description || '', true);
       setInputValue(generalInput, preset.general_description || '', true);
       setCurrencyByCode(preset.currency || 'COP', true);
@@ -1560,6 +1564,11 @@ const previewItinerary = document.getElementById('previewItinerary');
           checkbox.checked = preset.tag_ids.map(Number).includes(Number(checkbox.value));
         });
       }
+
+      const featuredInput = document.querySelector('input[name="is_featured"]');
+      const popularInput = document.querySelector('input[name="is_popular"]');
+      if (featuredInput && preset.is_featured !== undefined) featuredInput.checked = !!Number(preset.is_featured);
+      if (popularInput && preset.is_popular !== undefined) popularInput.checked = !!Number(preset.is_popular);
 
       updatePreview();
     });

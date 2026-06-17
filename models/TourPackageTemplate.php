@@ -16,6 +16,7 @@ class TourPackageTemplate extends Model
         'payload_json',
         'is_active',
         'created_by_admin_id',
+        'updated_by_admin_id',
     ];
 
     public static function activeList(): array
@@ -25,6 +26,31 @@ class TourPackageTemplate extends Model
                 ->where('is_active', '=', 1)
                 ->orderBy('name', 'ASC')
                 ->get();
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        return array_map(fn($row) => new static($row), $rows ?: []);
+    }
+
+    public static function adminList(array $filters = []): array
+    {
+        try {
+            $query = static::query();
+
+            $q = trim((string) ($filters['q'] ?? ''));
+            if ($q !== '') {
+                $query->whereAnyLike(['name', 'slug', 'description'], $q);
+            }
+
+            $status = trim((string) ($filters['status'] ?? ''));
+            if ($status === 'active') {
+                $query->where('is_active', '=', 1);
+            } elseif ($status === 'inactive') {
+                $query->where('is_active', '=', 0);
+            }
+
+            $rows = $query->orderBy('is_active', 'DESC')->orderBy('name', 'ASC')->get();
         } catch (\Throwable $e) {
             return [];
         }

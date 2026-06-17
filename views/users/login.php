@@ -4,6 +4,7 @@ use app\Core\Csrf;
 
 $errors = $errors ?? [];
 $message = $message ?? null;
+$notice = $notice ?? null;
 $old = $old ?? [];
 
 function login_error(array $errors, string $field): ?string
@@ -239,6 +240,38 @@ function login_error(array $errors, string $field): ?string
     border: 1px solid #fecaca;
   }
 
+  .auth-message.success {
+    background: #ecfdf5;
+    color: #166534;
+    border-color: #bbf7d0;
+  }
+
+  .auth-message.warning {
+    background: #fffbeb;
+    color: #92400e;
+    border-color: #fde68a;
+  }
+
+  .auth-message strong {
+    display: block;
+    margin-bottom: 4px;
+    color: inherit;
+  }
+
+  .auth-message .auth-message-actions {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .auth-message .auth-message-actions a {
+    color: inherit;
+    font-weight: 1000;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
   .auth-forgot {
     text-align: right;
     margin-top: -8px;
@@ -388,6 +421,17 @@ function login_error(array $errors, string $field): ?string
 
       <h1>Inicia sesión</h1>
       <p class="auth-card-sub">Accede a tu cuenta para gestionar tus solicitudes.</p>
+
+      <?php if (is_array($notice)): ?>
+        <?php $noticeType = in_array(($notice['type'] ?? ''), ['success', 'warning'], true) ? $notice['type'] : 'success'; ?>
+        <div class="auth-message <?= htmlspecialchars($noticeType) ?>">
+          <strong><?= htmlspecialchars($notice['title'] ?? 'Información importante') ?></strong>
+          <span><?= htmlspecialchars($notice['message'] ?? '') ?></span>
+          <div class="auth-message-actions">
+            <a href="/users/resendVerification<?= !empty($notice['email']) ? '?email=' . urlencode((string) $notice['email']) : '' ?>">Reenviar correo de verificación</a>
+          </div>
+        </div>
+      <?php endif; ?>
 
       <?php if ($message): ?>
         <div class="auth-message">

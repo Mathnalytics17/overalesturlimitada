@@ -5,6 +5,7 @@ namespace app\Controllers\Web\Users;
 use app\Core\Controller;
 use app\Core\Csrf;
 use app\Core\RateLimiter;
+use app\Core\Flash;
 use app\Services\Web\Users\CustomerAuthService;
 
 class AuthController extends Controller
@@ -14,6 +15,7 @@ class AuthController extends Controller
         return $this->render('users/login', [
             'errors' => [],
             'message' => null,
+            'notice' => Flash::get('customer_login_notice'),
         ]);
     }
 
@@ -37,6 +39,7 @@ class AuthController extends Controller
                 'old' => [
                     'email' => $_POST['email'] ?? '',
                 ],
+                'notice' => null,
             ]);
         }
 
@@ -50,6 +53,7 @@ class AuthController extends Controller
                 'old' => [
                     'email' => $_POST['email'] ?? '',
                 ],
+                'notice' => null,
             ]);
         }
 
@@ -75,6 +79,7 @@ class AuthController extends Controller
             'old' => [
                 'email' => $_POST['email'] ?? '',
             ],
+            'notice' => null,
         ]);
     }
 

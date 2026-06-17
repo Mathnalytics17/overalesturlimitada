@@ -45,7 +45,7 @@ class PackageTourController extends Controller
     {
         $tags = TourPackageTag::activeList();
         $currencies = Currency::activeList();
-        $old = [];
+        $old = ['sort_order' => '1'];
 
         $copyId = (int) ($_GET['copy'] ?? 0);
 
@@ -71,7 +71,7 @@ class PackageTourController extends Controller
                     'duration_days' => (string) ($package->duration_days ?? ''),
                     'duration_nights' => (string) ($package->duration_nights ?? ''),
                     'status' => 'draft',
-                    'sort_order' => (string) ($package->sort_order ?? 0),
+                    'sort_order' => '1',
                     'short_description' => (string) ($package->short_description ?? ''),
                     'general_description' => (string) ($package->general_description ?? ''),
                     'includes' => array_map(fn($item) => (string) ($item->content ?? ''), $includes),
@@ -462,7 +462,8 @@ class PackageTourController extends Controller
             Flash::error('No fue posible procesar la cola: ' . $exception->getMessage());
         }
 
-        edirect('/admin/packageTour');
+        
+        \redirect('/admin/packageTour');
         exit;
     }
 
@@ -480,7 +481,8 @@ class PackageTourController extends Controller
             Flash::error('No fue posible encolar recomendaciones: ' . $exception->getMessage());
         }
 
-        edirect('/admin/packageTour');
+        
+        \redirect('/admin/packageTour');
         exit;
     }
 
@@ -554,10 +556,13 @@ class PackageTourController extends Controller
         }
 
         $payload = [
+            'title' => trim((string) ($input['title'] ?? '')),
             'subtitle' => trim((string) ($input['subtitle'] ?? '')),
+            'location_name' => trim((string) ($input['location_name'] ?? '')),
+            'price_from' => trim((string) ($input['price_from'] ?? '')),
             'short_description' => trim((string) ($input['short_description'] ?? '')),
             'general_description' => trim((string) ($input['general_description'] ?? '')),
-            'currency' => trim((string) ($input['currency'] ?? 'COP')) ?: 'COP',
+            'currency' => strtoupper(trim((string) ($input['currency'] ?? 'COP'))) ?: 'COP',
             'duration_days' => trim((string) ($input['duration_days'] ?? '')),
             'duration_nights' => trim((string) ($input['duration_nights'] ?? '')),
             'includes' => $this->cleanStringList($input['includes'] ?? []),
@@ -608,7 +613,7 @@ class PackageTourController extends Controller
 
         return [
             'success' => true,
-            'message' => 'Plantilla guardada correctamente. Ya puedes seleccionarla en Plantilla rápida.',
+            'message' => 'Plantilla guardada correctamente. Puedes editarla desde el módulo Plantillas y usarla en Plantilla rápida.',
             'errors' => [],
         ];
     }

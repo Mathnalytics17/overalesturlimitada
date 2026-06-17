@@ -4,6 +4,13 @@ use app\Core\Csrf;
 $tags = $tags ?? [];
 $usage = $usage ?? [];
 $filters = $filters ?? [];
+
+function tag_is_active(mixed $tag): bool
+{
+  $data = is_object($tag) && method_exists($tag, 'toArray') ? $tag->toArray() : [];
+  $value = $data['is_active'] ?? $data['active'] ?? ($tag->is_active ?? ($tag->active ?? 0));
+  return in_array($value, [1, '1', true, 'true', 'active', 'Activo'], true);
+}
 ?>
 
 <div class="card">
@@ -59,8 +66,8 @@ $filters = $filters ?? [];
             <td class="t-muted"><?= htmlspecialchars($tag->slug ?? '') ?></td>
             <td><code><?= htmlspecialchars($tag->color ?? '') ?></code></td>
             <td>
-              <span class="badge <?= !empty($tag->is_active) ? 'ok' : 'neutral' ?>">
-                <?= !empty($tag->is_active) ? 'Activa' : 'Inactiva' ?>
+              <span class="badge <?= tag_is_active($tag) ? 'ok' : 'neutral' ?>">
+                <?= tag_is_active($tag) ? 'Activa' : 'Inactiva' ?>
               </span>
             </td>
             <td><span class="badge info"><?= $count ?> paquete(s)</span></td>
