@@ -33,8 +33,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><?php echo htmlspecialchars($page_title); ?></title>
   <link rel="stylesheet" href="/styles/admin.css" />
-  <!-- Iconos opcionales por CDN. Si no cargan, el CSS/HTML muestra fallback local. -->
-  <script src="https://unpkg.com/lucide@latest" defer></script>
+  <script src="/js/vendor/lucide.min.js" defer></script>
 </head>
 <body>
 <div class="app">

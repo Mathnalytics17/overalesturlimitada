@@ -608,7 +608,7 @@ foreach ($templates as $template) {
       <div class="alert error"><?= htmlspecialchars($message) ?></div>
     <?php endif; ?>
 
-    <form method="POST" action="<?= htmlspecialchars($action) ?>" enctype="multipart/form-data" id="packageForm">
+    <form method="POST" action="<?= htmlspecialchars($action) ?>" enctype="multipart/form-data" id="packageForm" novalidate>
       <?= Csrf::input(); ?>
 
       <?php if ($mode === 'edit' && $package): ?>
